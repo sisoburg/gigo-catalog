@@ -1,0 +1,56 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.track {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-inline: max(var(--space-4), calc(50% - 37vw));
+  padding-block: var(--space-2);
+  cursor: grab;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  outline: none;
+}
+
+.track:active {
+  cursor: grabbing;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.dashes {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.dash,
+.dashActive {
+  width: 1rem;
+  height: 2px;
+  background: var(--color-line);
+  transition: background 0.3s var(--ease-signature);
+}
+
+.dashActive {
+  background: var(--color-fg);
+}
+
+@media (min-width: 640px) {
+  .track {
+    padding-inline: max(var(--space-5), calc(50% - 20vw));
+  }
+}
+
+@media (min-width: 1024px) {
+  .track {
+    padding-inline: max(var(--space-6), calc(50% - 12vw));
+  }
+}

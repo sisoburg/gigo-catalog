@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Gigo</title>
+    <!--
+      GitHub Pages serves this file for any unknown path — i.e. every deep
+      link, since Pages has no server-side router. It stashes the real URL
+      in sessionStorage and redirects to the SPA's root; the inline script
+      in index.html reads it back and restores the URL via history.replaceState
+      before React Router mounts, so refreshing or sharing a piece URL works.
+    -->
+    <script>
+      // Keep this path in sync with src/basePath.ts.
+      sessionStorage.redirect = location.href
+      location.replace('/Gigo_catalog/')
+    </script>
+  </head>
+  <body></body>
+</html>

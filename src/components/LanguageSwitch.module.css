@@ -1,0 +1,16 @@
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--color-grey);
+}
+
+.sep {
+  opacity: 0.5;
+}
+
+.active {
+  color: var(--color-fg);
+}

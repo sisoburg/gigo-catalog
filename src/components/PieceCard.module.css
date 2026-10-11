@@ -1,0 +1,55 @@
+.card {
+  display: block;
+  flex: 0 0 auto;
+  width: 74vw;
+  scroll-snap-align: center;
+  -webkit-user-drag: none;
+}
+
+.imageWrap {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--color-bg-raised);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.caption {
+  padding-top: var(--space-3);
+  text-align: center;
+}
+
+.name {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+
+.materials {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--color-grey);
+  margin-top: var(--space-1);
+}
+
+@media (min-width: 640px) {
+  .card {
+    width: 40vw;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card {
+    width: 24vw;
+    max-width: 320px;
+  }
+}
