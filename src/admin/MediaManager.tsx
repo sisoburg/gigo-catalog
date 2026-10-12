@@ -6,11 +6,12 @@ import {
   setCover,
   deleteMedia,
   uploadToStorage,
+  updateStorageObject,
   insertMediaRow,
   publicUrl,
   type MediaRow,
 } from './adminData'
-import { loadImage, processPhoto, type ProcessedPhoto } from './imagePipeline'
+import { loadImage, processPhoto, rotateStoredPhoto, type ProcessedPhoto } from './imagePipeline'
 import { loadVideoMeta, captureVideoPoster, describeVideoWarning } from './videoPipeline'
 import { CropModal } from './CropModal'
 
@@ -18,10 +19,20 @@ interface MediaManagerProps {
   pieceId: string
 }
 
+/** The storage path doesn't change on rotate, so append a cache-busting
+ *  query param after one to force a fresh fetch instead of showing the
+ *  browser's cached (pre-rotate) bytes for the rest of this admin session. */
+function thumbSrc(m: MediaRow, bust?: number): string {
+  const url = publicUrl(m.path_thumbnail!)
+  return bust ? `${url}?v=${bust}` : url
+}
+
 export function MediaManager({ pieceId }: MediaManagerProps) {
   const [items, setItems] = useState<MediaRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [rotatingId, setRotatingId] = useState<string | null>(null)
+  const [cacheBust, setCacheBust] = useState<Record<string, number>>({})
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Photo crop flow state
@@ -49,11 +60,15 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+    setUploading(true)
+    setError(null)
     try {
       const img = await loadImage(file)
       setPendingImage({ src: img.src, img })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not read that image')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -155,6 +170,30 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
     }
   }
 
+  async function handleRotate(m: MediaRow, direction: 'cw' | 'ccw') {
+    if (m.kind !== 'photo' || !m.path_thumbnail || !m.path_medium || !m.path_large) return
+    setRotatingId(m.id)
+    setError(null)
+    try {
+      const rotated = await rotateStoredPhoto(
+        { thumbnail: publicUrl(m.path_thumbnail), medium: publicUrl(m.path_medium), large: publicUrl(m.path_large) },
+        direction,
+      )
+      await Promise.all([
+        updateStorageObject(m.path_thumbnail, rotated.thumbnail, 'image/webp'),
+        updateStorageObject(m.path_medium, rotated.medium, 'image/webp'),
+        updateStorageObject(m.path_large, rotated.large, 'image/webp'),
+      ])
+      // The storage path doesn't change, so bust the browser's own cache of
+      // it for this session — otherwise the old (sideways) bytes keep showing.
+      setCacheBust((prev) => ({ ...prev, [m.id]: Date.now() }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Rotate failed')
+    } finally {
+      setRotatingId(null)
+    }
+  }
+
   // --- drag reorder across the grid ---
   const onGripPointerDown = useCallback(
     (id: string) => (e: React.PointerEvent) => {
@@ -214,9 +253,14 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
           {items.map((m) => (
             <div key={m.id} data-media-id={m.id} className={draggingId === m.id ? 'mediaItem dragging' : 'mediaItem'}>
               {m.kind === 'photo' ? (
-                <img src={publicUrl(m.path_thumbnail!)} alt="" />
+                <img src={thumbSrc(m, cacheBust[m.id])} alt="" />
               ) : (
                 <video src={publicUrl(m.path_video!)} poster={m.path_poster ? publicUrl(m.path_poster) : undefined} muted />
+              )}
+              {rotatingId === m.id && (
+                <div className="mediaBusy">
+                  <span className="spinner" />
+                </div>
               )}
               <div className="mediaActions">
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
@@ -230,6 +274,16 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
                   </span>
                 </div>
                 <div className="mediaButtons">
+                  {m.kind === 'photo' && (
+                    <>
+                      <button type="button" disabled={rotatingId === m.id} onClick={() => handleRotate(m, 'ccw')} title="Rotate left">
+                        ⟲
+                      </button>
+                      <button type="button" disabled={rotatingId === m.id} onClick={() => handleRotate(m, 'cw')} title="Rotate right">
+                        ⟳
+                      </button>
+                    </>
+                  )}
                   {!m.is_cover && (
                     <button type="button" onClick={() => handleSetCover(m.id)}>
                       Set cover
@@ -252,7 +306,7 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
         <button className="btn secondary small" type="button" disabled={uploading} onClick={() => videoInputRef.current?.click()}>
           {uploading ? <span className="spinner" /> : '+ Add video'}
         </button>
-        <input ref={photoInputRef} type="file" accept="image/*" hidden onChange={handlePhotoPick} />
+        <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif,image/heic,image/heif" hidden onChange={handlePhotoPick} />
         <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={handleVideoPick} />
       </div>
       <p className="helpText">Photos are cropped to a 4:5 frame and resized to three sizes automatically. Videos should be short, 5–10s clips.</p>

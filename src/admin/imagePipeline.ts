@@ -13,12 +13,46 @@ export interface CropPixels {
   height: number
 }
 
-export function loadImage(file: File): Promise<HTMLImageElement> {
+export function isHeicFile(file: File | Blob): boolean {
+  if (file.type) {
+    const type = file.type.toLowerCase()
+    if (type === 'image/heic' || type === 'image/heif') return true
+  }
+  if ('name' in file && typeof (file as File).name === 'string') {
+    return /\.(heic|heif)$/i.test((file as File).name)
+  }
+  return false
+}
+
+export async function convertHeicToJpeg(file: File | Blob): Promise<Blob> {
+  const heic2any = (await import('heic2any')).default
+  const result = await heic2any({
+    blob: file,
+    toType: 'image/jpeg',
+    quality: 0.92,
+  })
+  return Array.isArray(result) ? result[0] : result
+}
+
+export async function loadImage(file: File): Promise<HTMLImageElement> {
+  let sourceBlob: Blob = file
+  if (isHeicFile(file)) {
+    try {
+      sourceBlob = await convertHeicToJpeg(file)
+    } catch (err) {
+      throw new Error(`Failed to convert HEIC image: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image()
+    const objectUrl = URL.createObjectURL(sourceBlob)
     img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Could not read that image file.'))
-    img.src = URL.createObjectURL(file)
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Could not read that image file.'))
+    }
+    img.src = objectUrl
   })
 }
 
@@ -65,6 +99,68 @@ export async function processPhoto(image: HTMLImageElement, crop: CropPixels): P
     canvasToWebp(largeCanvas, 0.85),
     canvasToWebp(resizeCanvas(largeCanvas, SIZES.medium), 0.82),
     canvasToWebp(resizeCanvas(largeCanvas, SIZES.thumbnail), 0.8),
+  ])
+  return { thumbnail, medium, large }
+}
+
+/** Fetches a URL as a blob and loads it as an <img> via a same-origin blob:
+ *  URL — avoids tainting the canvas that a cross-origin <img src> would
+ *  cause (Supabase Storage's CORS headers make the fetch() itself work). */
+async function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('Could not fetch image')
+  const blob = await res.blob()
+  const objectUrl = URL.createObjectURL(blob)
+  try {
+    return await new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error('Could not decode image'))
+      img.src = objectUrl
+    })
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+
+function imageToCanvas(img: HTMLImageElement): HTMLCanvasElement {
+  const canvas = document.createElement('canvas')
+  canvas.width = img.naturalWidth
+  canvas.height = img.naturalHeight
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas not supported')
+  ctx.drawImage(img, 0, 0)
+  return canvas
+}
+
+function rotateCanvas90(source: HTMLCanvasElement, direction: 'cw' | 'ccw'): HTMLCanvasElement {
+  const canvas = document.createElement('canvas')
+  canvas.width = source.height
+  canvas.height = source.width
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas not supported')
+  ctx.translate(canvas.width / 2, canvas.height / 2)
+  ctx.rotate((direction === 'cw' ? 90 : -90) * (Math.PI / 180))
+  ctx.drawImage(source, -source.width / 2, -source.height / 2)
+  return canvas
+}
+
+/** Re-fetches a photo's three already-published sizes, rotates each 90°,
+ *  and re-encodes — for fixing a sideways upload after the fact, without
+ *  needing the original source file again. */
+export async function rotateStoredPhoto(
+  urls: { thumbnail: string; medium: string; large: string },
+  direction: 'cw' | 'ccw',
+): Promise<ProcessedPhoto> {
+  const [thumbImg, mediumImg, largeImg] = await Promise.all([
+    loadImageFromUrl(urls.thumbnail),
+    loadImageFromUrl(urls.medium),
+    loadImageFromUrl(urls.large),
+  ])
+  const [thumbnail, medium, large] = await Promise.all([
+    canvasToWebp(rotateCanvas90(imageToCanvas(thumbImg), direction), 0.8),
+    canvasToWebp(rotateCanvas90(imageToCanvas(mediumImg), direction), 0.82),
+    canvasToWebp(rotateCanvas90(imageToCanvas(largeImg), direction), 0.85),
   ])
   return { thumbnail, medium, large }
 }
