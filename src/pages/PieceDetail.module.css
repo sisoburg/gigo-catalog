@@ -1,15 +1,27 @@
 .main {
   max-width: 640px;
   margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
-  text-align: center;
+  padding: var(--space-6) var(--space-4) var(--space-7);
 }
 
-.image {
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
+.back {
+  display: inline-block;
+  color: var(--color-grey);
+  font-size: 0.85rem;
   margin-bottom: var(--space-4);
+}
+
+.galleryWrap {
+  transition: opacity 0.25s ease;
+}
+
+.galleryHidden {
+  opacity: 0;
+}
+
+.info {
+  padding-top: var(--space-4);
+  text-align: center;
 }
 
 .name {
@@ -25,10 +37,17 @@
 
 .description {
   margin-top: var(--space-3);
+  max-width: 48ch;
+  margin-inline: auto;
+  line-height: 1.6;
 }
 
-.back {
-  display: inline-block;
-  margin-top: var(--space-5);
-  color: var(--color-grey);
+/* Rendered into document.body for the carousel->detail morph; not scoped by
+   the page layout above, so it needs its own fixed-position rules. */
+.transitionClone {
+  position: fixed;
+  z-index: 100;
+  object-fit: cover;
+  pointer-events: none;
+  will-change: top, left, width, height;
 }

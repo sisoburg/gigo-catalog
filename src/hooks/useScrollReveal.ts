@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -10,7 +10,7 @@ const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: r
 export function useScrollReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
 

@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Piece } from '../data/types'
 import { useLanguage } from '../i18n/LanguageContext'
 import { PieceCard } from './PieceCard'
 import styles from './Carousel.module.css'
+
+gsap.registerPlugin(ScrollTrigger)
 
 interface CarouselProps {
   pieces: Piece[]
@@ -14,6 +18,8 @@ export function Carousel({ pieces }: CarouselProps) {
   const { dir } = useLanguage()
   const trackRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const activeIndexRef = useRef(activeIndex)
+  activeIndexRef.current = activeIndex
 
   // --- drag-to-scroll (desktop mouse; touch gets native swipe for free) ---
   // Deliberately NOT using setPointerCapture: capturing the pointer on the
@@ -104,6 +110,38 @@ export function Carousel({ pieces }: CarouselProps) {
     return () => observer.disconnect()
   }, [pieces])
 
+  // --- staggered entrance as the carousel scrolls into view ---
+  // useLayoutEffect so the opacity:0 starting state is set before paint —
+  // otherwise there's a one-frame flash of the cards at full opacity.
+  useLayoutEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) {
+      gsap.set(track.children, { opacity: 1, y: 0, scale: 1 })
+      return
+    }
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        track.children,
+        { opacity: 0, y: 36, scale: 0.96 },
+        {
+          // Animate straight to each card's resting state (active vs. dimmed)
+          // so clearing props at the end doesn't produce a visible snap.
+          opacity: (i) => (i === activeIndexRef.current ? 1 : 0.55),
+          y: 0,
+          scale: (i) => (i === activeIndexRef.current ? 1 : 0.94),
+          duration: 0.9,
+          ease: 'power2.out',
+          stagger: 0.08,
+          clearProps: 'transform,opacity', // hand both back to CSS (active-card scale/dim, hover zoom)
+          scrollTrigger: { trigger: track, start: 'top 85%', once: true },
+        },
+      )
+    })
+    return () => ctx.revert()
+  }, [pieces])
+
   return (
     <div className={styles.wrapper}>
       <div
@@ -117,7 +155,7 @@ export function Carousel({ pieces }: CarouselProps) {
         aria-roledescription="carousel"
       >
         {pieces.map((piece, index) => (
-          <PieceCard key={piece.slug} piece={piece} index={index} />
+          <PieceCard key={piece.slug} piece={piece} index={index} active={index === activeIndex} />
         ))}
       </div>
       <div className={styles.dashes} aria-hidden="true">

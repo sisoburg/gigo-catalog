@@ -16,25 +16,16 @@
   --space-7: 6rem;
 
   --ease-signature: cubic-bezier(0.22, 1, 0.36, 1);
-}
 
-/* --- Font pairing A: Frank Ruhl Libre (headings, dual-script) + Assistant (body) --- */
-[data-font-pairing='a'] {
+  /* English: Frank Ruhl Libre headings + Assistant body (pairing A). */
   --font-heading: 'Frank Ruhl Libre', serif;
   --font-body: 'Assistant', sans-serif;
 }
 
-/* --- Font pairing B: David Libre / Cormorant Garamond (headings) + Heebo (body) --- */
-[data-font-pairing='b'] {
-  --font-heading: 'David Libre', serif;
-  --font-body: 'Heebo', sans-serif;
-}
-[data-font-pairing='b'][lang='en'] {
-  --font-heading: 'Cormorant Garamond', serif;
-}
-
-/* --- Font pairing C: Heebo everywhere — quiet modern sans --- */
-[data-font-pairing='c'] {
+/* Hebrew: Heebo everywhere (pairing C) — chosen because Hebrew serif options
+   read too close to each other to carry a two-face pairing; Heebo reads as
+   a deliberate, distinct choice instead. */
+:root[lang='he'] {
   --font-heading: 'Heebo', sans-serif;
   --font-body: 'Heebo', sans-serif;
 }

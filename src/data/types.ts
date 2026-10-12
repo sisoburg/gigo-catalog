@@ -5,11 +5,21 @@ export interface LocalizedText {
   en: string
 }
 
-export interface PieceMedia {
-  /** Statically imported image URL for the hardcoded Stage 1 data. */
+export interface PhotoMedia {
+  kind: 'photo'
+  /** Statically imported image URL for the hardcoded Stage 1/2 data. */
   src: string
   alt: LocalizedText
 }
+
+export interface VideoMedia {
+  kind: 'video'
+  src: string
+  poster: string
+  alt: LocalizedText
+}
+
+export type PieceMedia = PhotoMedia | VideoMedia
 
 export interface Piece {
   slug: string
@@ -20,6 +30,6 @@ export interface Piece {
   price?: number
   /** True content below is placeholder, pending real copy via /admin. */
   isMock: boolean
-  cover: PieceMedia
+  cover: PhotoMedia
   gallery: PieceMedia[]
 }

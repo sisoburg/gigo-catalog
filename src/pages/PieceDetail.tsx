@@ -1,14 +1,58 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import gsap from 'gsap'
 import { mockPieces } from '../data/mockPieces'
 import { useLanguage } from '../i18n/LanguageContext'
+import { useScrollReveal } from '../hooks/useScrollReveal'
+import { consumePendingTransition } from '../transitionStore'
+import { Gallery } from '../components/Gallery'
 import styles from './PieceDetail.module.css'
 
-// Stage 2 builds the real detail view + the signature carousel->detail
-// transition. This stub just proves the routing and deep-linking work.
 export function PieceDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { locale } = useLanguage()
   const piece = mockPieces.find((p) => p.slug === slug)
+  const heroImgRef = useRef<HTMLImageElement>(null)
+  const [overlayVisible, setOverlayVisible] = useState(false)
+  const infoRef = useScrollReveal<HTMLDivElement>()
+
+  // The signature moment: the clicked carousel card's cover image morphs
+  // into place over the real (fading-in) hero image, then disappears.
+  useLayoutEffect(() => {
+    if (!piece) return
+    const pending = consumePendingTransition(piece.slug)
+    const heroImg = heroImgRef.current
+    if (!pending || !heroImg) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const targetRect = heroImg.getBoundingClientRect()
+    const overlay = document.createElement('img')
+    overlay.src = pending.src
+    overlay.className = styles.transitionClone
+    overlay.style.top = `${pending.rect.top}px`
+    overlay.style.left = `${pending.rect.left}px`
+    overlay.style.width = `${pending.rect.width}px`
+    overlay.style.height = `${pending.rect.height}px`
+    document.body.appendChild(overlay)
+    setOverlayVisible(true)
+
+    gsap.to(overlay, {
+      top: targetRect.top,
+      left: targetRect.left,
+      width: targetRect.width,
+      height: targetRect.height,
+      duration: 0.75,
+      ease: 'power3.inOut',
+      onComplete: () => {
+        overlay.remove()
+        setOverlayVisible(false)
+      },
+    })
+
+    return () => overlay.remove()
+    // Intentionally run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!piece) {
     return (
@@ -21,13 +65,17 @@ export function PieceDetail() {
 
   return (
     <main className={styles.main}>
-      <img className={styles.image} src={piece.cover.src} alt={piece.cover.alt[locale]} />
-      <h1 className={styles.name}>{piece.name[locale]}</h1>
-      <p className={styles.materials}>{piece.materials[locale]}</p>
-      <p className={styles.description}>{piece.description[locale]}</p>
       <Link to="/" className={styles.back}>
         {locale === 'he' ? '← חזרה לאוסף' : '← Back to collection'}
       </Link>
+      <div className={overlayVisible ? `${styles.galleryWrap} ${styles.galleryHidden}` : styles.galleryWrap}>
+        <Gallery items={piece.gallery} firstImageRef={heroImgRef} />
+      </div>
+      <div ref={infoRef} className={styles.info}>
+        <h1 className={styles.name}>{piece.name[locale]}</h1>
+        <p className={styles.materials}>{piece.materials[locale]}</p>
+        <p className={styles.description}>{piece.description[locale]}</p>
+      </div>
     </main>
   )
 }
