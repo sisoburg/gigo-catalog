@@ -288,7 +288,7 @@
 
 .mediaGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 0.6rem;
   margin: 0.75rem 0;
 }
@@ -331,7 +331,8 @@
 }
 .mediaItem .mediaButtons {
   display: flex;
-  gap: 0.3rem;
+  flex-wrap: wrap;
+  gap: 0.25rem;
   justify-content: flex-end;
 }
 .mediaItem .mediaButtons button {
@@ -342,6 +343,7 @@
   font-size: 0.65rem;
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
 }
 .mediaItem .mediaBusy {
   position: absolute;

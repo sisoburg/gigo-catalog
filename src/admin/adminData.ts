@@ -112,15 +112,18 @@ export async function uploadToStorage(path: string, body: Blob, contentType: str
 }
 
 /** Overwrites an existing object at the same path (e.g. fixing a sideways
- *  photo in place). Uses .update() rather than .upload({upsert:true}) —
- *  upsert-on-upload hit a broken authorization path during the original
- *  import (see scripts/import-to-supabase.ts); .update() is untested but is
- *  the SDK's dedicated "replace this object" method, a different code path.
+ *  photo in place). Confirmed in production: `.update()` hits the same
+ *  broken "new row violates row-level security policy" authorization path
+ *  as `.upload({upsert:true})` did during the original import — so this
+ *  removes the old object and does a plain `.upload()` instead, the one
+ *  combination actually proven to work under this project's RLS policies.
  *  cacheControl:'0' asks Storage not to let CDNs/browsers cache the old
  *  bytes at this same URL. */
 export async function updateStorageObject(path: string, body: Blob, contentType: string): Promise<void> {
-  const { error } = await supabase.storage.from('media').update(path, body, { contentType, cacheControl: '0' })
-  if (error) throw error
+  const { error: removeError } = await supabase.storage.from('media').remove([path])
+  if (removeError) throw removeError
+  const { error: uploadError } = await supabase.storage.from('media').upload(path, body, { contentType, cacheControl: '0' })
+  if (uploadError) throw uploadError
 }
 
 export async function insertMediaRow(row: TablesInsert<'media'>): Promise<MediaRow> {
