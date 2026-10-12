@@ -29,6 +29,23 @@ import flower3 from '../assets/pieces/cutout-flower-ring/3.jpg'
 import flower4 from '../assets/pieces/cutout-flower-ring/4.jpg'
 import flower5 from '../assets/pieces/cutout-flower-ring/5.jpg'
 
+import chayaCover from '../assets/pieces/chaya/1.jpg'
+import chaya2 from '../assets/pieces/chaya/2.jpg'
+import chaya3 from '../assets/pieces/chaya/3.jpg'
+import chaya4 from '../assets/pieces/chaya/4.jpg'
+import chaya5 from '../assets/pieces/chaya/5.jpg'
+
+import liyaCover from '../assets/pieces/liya/1.jpg'
+import liya2 from '../assets/pieces/liya/2.jpg'
+import liya3 from '../assets/pieces/liya/3.jpg'
+import liya4 from '../assets/pieces/liya/4.jpg'
+import liya5 from '../assets/pieces/liya/5.jpg'
+
+import hadasaCover from '../assets/pieces/hadasa/1.jpg'
+import hadasa2 from '../assets/pieces/hadasa/2.jpg'
+import hadasa3 from '../assets/pieces/hadasa/3.jpg'
+import hadasa4 from '../assets/pieces/hadasa/4.jpg'
+
 export const mockPieces: Piece[] = [
   {
     slug: 'gemstone-dome-ring',
@@ -105,6 +122,59 @@ export const mockPieces: Piece[] = [
       { kind: 'photo', src: flower3, alt: { en: 'Cutout flower ring, studio', he: 'טבעת פרח חתוכה, צילום סטודיו' } },
       { kind: 'photo', src: flower4, alt: { en: 'Cutout flower ring, angle view', he: 'טבעת פרח חתוכה, זווית נוספת' } },
       { kind: 'photo', src: flower5, alt: { en: 'Cutout flower ring, close detail', he: 'טבעת פרח חתוכה, תקריב פרט' } },
+    ],
+  },
+  {
+    slug: 'chaya',
+    isMock: true,
+    name: { en: 'Chaya', he: 'חיה' },
+    materials: { en: 'Sterling silver, multi-color gemstones', he: 'כסף 925, אבני חן רב-גוניות' },
+    description: {
+      en: 'A slender silver band set with four colorful gemstones in a row.',
+      he: 'טבעת כסף דקה משובצת בארבע אבני חן צבעוניות בשורה.',
+    },
+    cover: { kind: 'photo', src: chayaCover, alt: { en: 'Multi-stone band ring, studio', he: 'טבעת רב-אבנים, צילום סטודיו' } },
+    gallery: [
+      { kind: 'photo', src: chayaCover, alt: { en: 'Multi-stone band ring, studio', he: 'טבעת רב-אבנים, צילום סטודיו' } },
+      { kind: 'photo', src: chaya2, alt: { en: 'Multi-stone band ring, angle view', he: 'טבעת רב-אבנים, זווית נוספת' } },
+      { kind: 'photo', src: chaya3, alt: { en: 'Multi-stone band ring, on a box', he: 'טבעת רב-אבנים, על קופסה' } },
+      { kind: 'photo', src: chaya4, alt: { en: 'Multi-stone band ring, close detail', he: 'טבעת רב-אבנים, תקריב' } },
+      { kind: 'photo', src: chaya5, alt: { en: 'Multi-stone band ring, top view', he: 'טבעת רב-אבנים, מבט מלמעלה' } },
+    ],
+  },
+  {
+    slug: 'liya',
+    isMock: true,
+    name: { en: 'Liya', he: 'ליה' },
+    materials: { en: 'Sterling silver, drop beads', he: 'כסף 925, חרוזי תליון' },
+    description: {
+      en: 'A fine silver chain ending in two graduated drop beads.',
+      he: 'שרשרת כסף דקה המסתיימת בשני חרוזי תליון מדורגים.',
+    },
+    cover: { kind: 'photo', src: liyaCover, alt: { en: 'Drop bead necklace, worn close', he: 'שרשרת חרוזים, תקריב על הגוף' } },
+    gallery: [
+      { kind: 'photo', src: liyaCover, alt: { en: 'Drop bead necklace, worn close', he: 'שרשרת חרוזים, תקריב על הגוף' } },
+      { kind: 'photo', src: liya2, alt: { en: 'Drop bead necklace, worn', he: 'שרשרת חרוזים, על הגוף' } },
+      { kind: 'photo', src: liya3, alt: { en: 'Drop bead necklace, worn in sunlight', he: 'שרשרת חרוזים, באור שמש' } },
+      { kind: 'photo', src: liya4, alt: { en: 'Drop bead necklace, studio', he: 'שרשרת חרוזים, צילום סטודיו' } },
+      { kind: 'photo', src: liya5, alt: { en: 'Drop bead necklace, styled shot', he: 'שרשרת חרוזים, צילום סטיילינג' } },
+    ],
+  },
+  {
+    slug: 'hadasa',
+    isMock: true,
+    name: { en: 'Hadasa', he: 'הדסה' },
+    materials: { en: 'Sterling silver', he: 'כסף 925' },
+    description: {
+      en: 'A double-link ring with a simple, sculptural silver band.',
+      he: 'טבעת כסף פיסולית עם חישוק כפול פשוט.',
+    },
+    cover: { kind: 'photo', src: hadasaCover, alt: { en: 'Link ring, worn close', he: 'טבעת חוליות, תקריב על הגוף' } },
+    gallery: [
+      { kind: 'photo', src: hadasaCover, alt: { en: 'Link ring, worn close', he: 'טבעת חוליות, תקריב על הגוף' } },
+      { kind: 'photo', src: hadasa2, alt: { en: 'Link ring, studio', he: 'טבעת חוליות, צילום סטודיו' } },
+      { kind: 'photo', src: hadasa3, alt: { en: 'Link ring, studio angle', he: 'טבעת חוליות, זווית סטודיו' } },
+      { kind: 'photo', src: hadasa4, alt: { en: 'Link ring, overhead view', he: 'טבעת חוליות, מבט מלמעלה' } },
     ],
   },
 ]

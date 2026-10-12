@@ -1,0 +1,44 @@
+.button {
+  position: fixed;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  color: var(--color-fg);
+  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  translate: 0 8px;
+  pointer-events: none;
+  transition: opacity 0.35s ease, translate 0.35s ease, transform 0.2s ease;
+}
+
+.visible {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+
+.button:hover {
+  transform: scale(1.06);
+}
+
+@media (min-width: 1024px) {
+  .button {
+    right: var(--space-4);
+    bottom: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: opacity 0.2s ease;
+    translate: 0;
+  }
+}

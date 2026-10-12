@@ -8,6 +8,13 @@ gsap.registerPlugin(ScrollTrigger)
 
 let lenisInstance: Lenis | null = null
 
+/** Smooth-scrolls to the top, using Lenis when it's running (reduced-motion
+ *  users never get a Lenis instance, so this falls back to native scroll). */
+export function scrollToTop() {
+  if (lenisInstance) lenisInstance.scrollTo(0, { duration: 1.2 })
+  else window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 /**
  * Site-wide smooth (inertial) scroll, wired into GSAP's ticker so every
  * ScrollTrigger-driven animation moves with it instead of against native

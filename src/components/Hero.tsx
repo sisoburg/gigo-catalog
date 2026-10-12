@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLanguage } from '../i18n/LanguageContext'
 import { t } from '../i18n/strings'
+import logoWhite from '../assets/brand/logo-white.png'
 import styles from './Hero.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -56,7 +57,9 @@ export function Hero({ imageSrc, imageAlt }: HeroProps) {
       <div className={styles.scrim} />
       <div ref={contentRef} className={styles.content}>
         <p className={styles.tagline}>{t('tagline', locale)}</p>
-        <h1 className={styles.title}>{t('siteName', locale)}</h1>
+        <h1 className={styles.title}>
+          <img className={styles.logo} src={logoWhite} alt={t('siteName', locale)} />
+        </h1>
       </div>
     </section>
   )

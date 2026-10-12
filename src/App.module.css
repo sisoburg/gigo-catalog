@@ -4,10 +4,11 @@
   top: 0;
   z-index: 40;
   display: flex;
-  /* Pinned to the physical right in both languages: without this, "flex-end"
-     flips sides with the document's dir, which read as the switch jumping
+  /* Pinned to fixed physical sides in both languages: without this,
+     flex-end/flex-start flip with "dir", which read as controls jumping
      around on every language toggle. */
   direction: ltr;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   padding: var(--space-3) var(--space-4);
 }
