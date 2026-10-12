@@ -1,7 +1,7 @@
 import { mockPieces } from '../data/mockPieces'
 import { Hero } from '../components/Hero'
 import { Carousel } from '../components/Carousel'
-import { WornGallery } from '../components/WornGallery'
+import { BrandFilmstrip, type FilmstripItem } from '../components/BrandFilmstrip'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import styles from './Home.module.css'
@@ -13,13 +13,19 @@ const bracha = mockPieces.find((p) => p.slug === 'ribbed-earrings-wide-blue')!
 const galya = mockPieces.find((p) => p.slug === 'green-stone-choker')!
 const jeanine = mockPieces.find((p) => p.slug === 'cutout-flower-ring')!
 
-// Secondary on-body shots (not the covers already shown in the carousel
-// above), each drifting at a slightly different scroll speed.
-const WORN_ITEMS = [
-  { piece: mazal, galleryIndex: 1, speed: -6 },
-  { piece: bracha, galleryIndex: 2, speed: 10 },
-  { piece: galya, galleryIndex: 1, speed: -10 },
-  { piece: jeanine, galleryIndex: 1, speed: 6 },
+// Pure atmosphere, not product listings — mixed sizes and a video for
+// rhythm, pulled from across all four pieces' galleries (not just covers).
+const FILMSTRIP_ITEMS: FilmstripItem[] = [
+  { media: mazal.gallery[0], size: 'tall' },
+  { media: bracha.gallery[3], size: 'square' },
+  { media: galya.gallery[0], size: 'tall' },
+  { media: jeanine.gallery[2], size: 'wide' },
+  { media: mazal.gallery[2], size: 'square' },
+  { media: bracha.gallery[1], size: 'tall' }, // video
+  { media: galya.gallery[2], size: 'square' },
+  { media: jeanine.gallery[0], size: 'tall' },
+  { media: mazal.gallery[4], size: 'square' },
+  { media: bracha.gallery[5], size: 'wide' },
 ]
 
 export function Home() {
@@ -35,7 +41,7 @@ export function Home() {
         </div>
         <Carousel pieces={mockPieces} />
       </section>
-      <WornGallery items={WORN_ITEMS} />
+      <BrandFilmstrip items={FILMSTRIP_ITEMS} />
     </main>
   )
 }

@@ -50,14 +50,22 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoomedIndex])
 
-  const onWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+  // Native listener, not React's onWheel — see Carousel.tsx for why
+  // (React's synthetic wheel handler is passive, so preventDefault is a no-op there).
+  const zoomedRef = useRef(zoomedIndex)
+  zoomedRef.current = zoomedIndex
+  useEffect(() => {
     const track = trackRef.current
-    if (!track || zoomedIndex !== null) return
-    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
-    track.scrollLeft += e.deltaY
-    e.preventDefault()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoomedIndex])
+    if (!track) return
+    const onWheel = (e: WheelEvent) => {
+      if (zoomedRef.current !== null) return
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
+      track.scrollLeft += e.deltaY
+      e.preventDefault()
+    }
+    track.addEventListener('wheel', onWheel, { passive: false })
+    return () => track.removeEventListener('wheel', onWheel)
+  }, [])
 
   const goToIndex = useCallback(
     (index: number) => {
@@ -86,21 +94,44 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
     [activeIndex, dir, goToIndex, zoomedIndex],
   )
 
+  // Measured from scrollLeft rather than IntersectionObserver — see Carousel.tsx
+  // for why: IO callbacks only report entries whose ratio just crossed the
+  // threshold, not a full re-scan, which misidentifies the active slide.
   useEffect(() => {
     const track = trackRef.current
     if (!track) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((en) => en.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-        if (visible[0]) {
-          const index = Number((visible[0].target as HTMLElement).dataset.galleryItem)
-          if (!Number.isNaN(index)) setActiveIndex(index)
+    let frame = 0
+
+    const update = () => {
+      frame = 0
+      const viewportCenter = track.scrollLeft + track.clientWidth / 2
+      let closestIndex = 0
+      let closestDistance = Infinity
+      Array.from(track.children).forEach((child, i) => {
+        const el = child as HTMLElement
+        const center = el.offsetLeft + el.offsetWidth / 2
+        const distance = Math.abs(center - viewportCenter)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestIndex = i
         }
-      },
-      { root: track, threshold: [0.6] },
-    )
-    Array.from(track.children).forEach((child) => observer.observe(child))
-    return () => observer.disconnect()
+      })
+      setActiveIndex(closestIndex)
+    }
+    const onScroll = () => {
+      if (frame) return
+      frame = requestAnimationFrame(update)
+    }
+
+    update()
+    track.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      track.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [items])
 
   return (
@@ -109,7 +140,6 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
         ref={trackRef}
         className={styles.track}
         onPointerDown={onPointerDown}
-        onWheel={onWheel}
         onKeyDown={onKeyDown}
         tabIndex={0}
         role="region"

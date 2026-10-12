@@ -1,0 +1,73 @@
+.section {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--color-fg);
+  display: flex;
+  align-items: center;
+}
+
+.eyebrow {
+  position: absolute;
+  top: var(--space-4);
+  inset-inline-start: var(--space-4);
+  z-index: 2;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-bg) 70%, transparent);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-inline: var(--space-4);
+  will-change: transform;
+}
+
+.tile {
+  position: relative;
+  flex: 0 0 auto;
+  height: 68svh;
+  overflow: hidden;
+  background: var(--color-bg-raised);
+}
+
+.tile img,
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.tall {
+  aspect-ratio: 3 / 4.3;
+}
+
+.square {
+  aspect-ratio: 1 / 1;
+  height: 48svh;
+  align-self: flex-end;
+}
+
+.wide {
+  aspect-ratio: 16 / 10;
+  height: 40svh;
+  align-self: flex-start;
+  margin-top: 6svh;
+}
+
+@media (min-width: 1024px) {
+  .tile {
+    height: 72svh;
+  }
+  .square {
+    height: 50svh;
+  }
+  .wide {
+    height: 42svh;
+  }
+}

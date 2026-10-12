@@ -15,11 +15,12 @@ interface CarouselProps {
 const DRAG_CLICK_THRESHOLD = 6
 
 export function Carousel({ pieces }: CarouselProps) {
-  const { dir } = useLanguage()
+  const { dir, locale } = useLanguage()
   const trackRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const activeIndexRef = useRef(activeIndex)
   activeIndexRef.current = activeIndex
+  const [progress, setProgress] = useState(0)
 
   // --- drag-to-scroll (desktop mouse; touch gets native swipe for free) ---
   // Deliberately NOT using setPointerCapture: capturing the pointer on the
@@ -61,15 +62,22 @@ export function Carousel({ pieces }: CarouselProps) {
   }, [])
 
   // --- vertical wheel -> horizontal scroll ---
-  const onWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+  // A native listener, not React's onWheel: React attaches wheel handlers
+  // as passive by default, which silently drops preventDefault() and logs
+  // a console warning — the page would scroll vertically at the same time.
+  useEffect(() => {
     const track = trackRef.current
     if (!track) return
-    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return // already horizontal, let it be
-    track.scrollLeft += e.deltaY
-    e.preventDefault()
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return // already horizontal, let it be
+      track.scrollLeft += e.deltaY
+      e.preventDefault()
+    }
+    track.addEventListener('wheel', onWheel, { passive: false })
+    return () => track.removeEventListener('wheel', onWheel)
   }, [])
 
-  // --- arrow keys: always move toward the visually indicated side ---
+  // --- shared "which way is visually left/right" helper for keys + arrows ---
   const goToIndex = useCallback((index: number) => {
     const track = trackRef.current
     if (!track) return
@@ -78,36 +86,73 @@ export function Carousel({ pieces }: CarouselProps) {
     item?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
   }, [pieces.length])
 
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const visualStep = (visualRight: boolean) => (dir === 'rtl' ? (visualRight ? -1 : 1) : visualRight ? 1 : -1)
-      if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        goToIndex(activeIndex + visualStep(true))
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        goToIndex(activeIndex + visualStep(false))
-      }
-    },
-    [activeIndex, dir, goToIndex],
+  const visualStep = useCallback(
+    (towardVisualRight: boolean) => (dir === 'rtl' ? (towardVisualRight ? -1 : 1) : towardVisualRight ? 1 : -1),
+    [dir],
   )
 
-  // --- track the centered item for the dash indicator ---
+  const goVisualLeft = useCallback(() => goToIndex(activeIndexRef.current + visualStep(false)), [goToIndex, visualStep])
+  const goVisualRight = useCallback(() => goToIndex(activeIndexRef.current + visualStep(true)), [goToIndex, visualStep])
+
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        goVisualRight()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        goVisualLeft()
+      }
+    },
+    [goVisualLeft, goVisualRight],
+  )
+
+  // --- track the centered item and continuous scroll progress ---
+  // Deliberately NOT IntersectionObserver: at desktop widths several cards
+  // are simultaneously >60% visible, and an IO callback only reports
+  // entries whose ratio just crossed the threshold — not a full re-scan —
+  // so it was reporting whichever card last crossed in (often the one
+  // newly scrolled into view), not the actually-centered one. Measuring
+  // directly against scrollLeft is unambiguous regardless of how many
+  // cards fit on screen at once.
   useEffect(() => {
     const track = trackRef.current
     if (!track) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((en) => en.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-        if (visible[0]) {
-          const index = Number((visible[0].target as HTMLElement).dataset.carouselItem)
-          if (!Number.isNaN(index)) setActiveIndex(index)
+    let frame = 0
+
+    const update = () => {
+      frame = 0
+      const max = track.scrollWidth - track.clientWidth
+      setProgress(max > 0 ? Math.min(1, Math.max(0, track.scrollLeft / max)) : 0)
+
+      const viewportCenter = track.scrollLeft + track.clientWidth / 2
+      let closestIndex = 0
+      let closestDistance = Infinity
+      Array.from(track.children).forEach((child, i) => {
+        const el = child as HTMLElement
+        const center = el.offsetLeft + el.offsetWidth / 2
+        const distance = Math.abs(center - viewportCenter)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestIndex = i
         }
-      },
-      { root: track, threshold: [0.6] },
-    )
-    Array.from(track.children).forEach((child) => observer.observe(child))
-    return () => observer.disconnect()
+      })
+      setActiveIndex(closestIndex)
+    }
+    const onScroll = () => {
+      if (frame) return
+      frame = requestAnimationFrame(update)
+    }
+
+    update()
+    track.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      track.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [pieces])
 
   // --- staggered entrance as the carousel scrolls into view ---
@@ -142,27 +187,73 @@ export function Carousel({ pieces }: CarouselProps) {
     return () => ctx.revert()
   }, [pieces])
 
+  // Physical-left and physical-right arrows always reveal what's off that
+  // side of the screen, regardless of language direction — this is a
+  // navigation control, not text, so it shouldn't mirror with RTL.
+  const atVisualLeftEnd = dir === 'rtl' ? activeIndex === pieces.length - 1 : activeIndex === 0
+  const atVisualRightEnd = dir === 'rtl' ? activeIndex === 0 : activeIndex === pieces.length - 1
+
   return (
     <div className={styles.wrapper}>
-      <div
-        ref={trackRef}
-        className={styles.track}
-        onPointerDown={onPointerDown}
-        onWheel={onWheel}
-        onKeyDown={onKeyDown}
-        tabIndex={0}
-        role="region"
-        aria-roledescription="carousel"
-      >
-        {pieces.map((piece, index) => (
-          <PieceCard key={piece.slug} piece={piece} index={index} active={index === activeIndex} />
-        ))}
+      <div className={styles.viewport}>
+        <button
+          type="button"
+          className={styles.arrowLeft}
+          onClick={goVisualLeft}
+          disabled={atVisualLeftEnd}
+          aria-label={locale === 'he' ? 'הקודם' : 'Previous'}
+        >
+          <ArrowIcon />
+        </button>
+        <div
+          ref={trackRef}
+          className={styles.track}
+          onPointerDown={onPointerDown}
+          onKeyDown={onKeyDown}
+          tabIndex={0}
+          role="region"
+          aria-roledescription="carousel"
+        >
+          {pieces.map((piece, index) => (
+            <PieceCard key={piece.slug} piece={piece} index={index} active={index === activeIndex} />
+          ))}
+        </div>
+        <button
+          type="button"
+          className={styles.arrowRight}
+          onClick={goVisualRight}
+          disabled={atVisualRightEnd}
+          aria-label={locale === 'he' ? 'הבא' : 'Next'}
+        >
+          <ArrowIcon flipped />
+        </button>
       </div>
-      <div className={styles.dashes} aria-hidden="true">
-        {pieces.map((_, index) => (
-          <span key={index} className={index === activeIndex ? styles.dashActive : styles.dash} />
-        ))}
+      <div className={styles.progressRow}>
+        <div className={styles.progressTrack} aria-hidden="true">
+          <div
+            className={styles.progressFill}
+            style={{ transform: `scaleX(${Math.max(0.04, progress)})`, transformOrigin: dir === 'rtl' ? 'right' : 'left' }}
+          />
+        </div>
+        <span className={styles.progressCount}>
+          {activeIndex + 1} / {pieces.length}
+        </span>
       </div>
     </div>
+  )
+}
+
+function ArrowIcon({ flipped }: { flipped?: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="14"
+      viewBox="0 0 18 14"
+      fill="none"
+      style={flipped ? { transform: 'scaleX(-1)' } : undefined}
+      aria-hidden="true"
+    >
+      <path d="M1 7H17M17 7L11 1M17 7L11 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
