@@ -118,12 +118,26 @@ export async function uploadToStorage(path: string, body: Blob, contentType: str
  *  removes the old object and does a plain `.upload()` instead, the one
  *  combination actually proven to work under this project's RLS policies.
  *  cacheControl:'0' asks Storage not to let CDNs/browsers cache the old
- *  bytes at this same URL. */
+ *  bytes at this same URL.
+ *
+ *  The remove and the upload each succeed individually but Storage's
+ *  delete isn't immediately visible to a following upload (confirmed in
+ *  production: "The resource already exists" right after a clean remove),
+ *  so the upload retries a few times with a short delay instead of only
+ *  trying once. */
 export async function updateStorageObject(path: string, body: Blob, contentType: string): Promise<void> {
   const { error: removeError } = await supabase.storage.from('media').remove([path])
   if (removeError) throw removeError
-  const { error: uploadError } = await supabase.storage.from('media').upload(path, body, { contentType, cacheControl: '0' })
-  if (uploadError) throw uploadError
+
+  let lastError: Error | null = null
+  for (let attempt = 0; attempt < 6; attempt++) {
+    if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 400))
+    const { error: uploadError } = await supabase.storage.from('media').upload(path, body, { contentType, cacheControl: '0' })
+    if (!uploadError) return
+    lastError = uploadError
+    if (!uploadError.message.toLowerCase().includes('already exists')) throw uploadError
+  }
+  throw lastError
 }
 
 export async function insertMediaRow(row: TablesInsert<'media'>): Promise<MediaRow> {
