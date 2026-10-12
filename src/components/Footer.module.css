@@ -1,0 +1,102 @@
+.footer {
+  border-top: 1px solid var(--color-line);
+  margin-top: var(--space-7);
+}
+
+.inner {
+  max-width: 640px;
+  margin-inline: auto;
+  padding: var(--space-7) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  text-align: center;
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-grey);
+  margin-bottom: var(--space-3);
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 3.2vw, 1.6rem);
+  line-height: 1.35;
+  margin-bottom: var(--space-1);
+}
+
+.about p {
+  max-width: 48ch;
+  margin-inline: auto;
+  line-height: 1.7;
+  color: var(--color-fg-muted);
+}
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dm {
+  max-width: 40ch;
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+  margin-bottom: var(--space-4);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.instagram,
+.whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
+}
+
+.instagram:hover,
+.whatsapp:hover {
+  border-color: var(--color-fg);
+  background: var(--color-bg-raised);
+  transform: translateY(-1px);
+}
+
+.copyright {
+  font-size: 0.75rem;
+  color: var(--color-grey);
+}
+
+@media (max-width: 480px) {
+  .links {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .instagram,
+  .whatsapp {
+    justify-content: center;
+  }
+}

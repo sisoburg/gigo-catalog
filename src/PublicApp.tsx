@@ -4,6 +4,7 @@ import { CatalogProvider } from './data/CatalogContext'
 import { LanguageSwitch } from './components/LanguageSwitch'
 import { InstagramLink } from './components/InstagramLink'
 import { BackToTop } from './components/BackToTop'
+import { Footer } from './components/Footer'
 import { Home } from './pages/Home'
 import { PieceDetail } from './pages/PieceDetail'
 import styles from './App.module.css'
@@ -20,6 +21,7 @@ export function PublicApp() {
           <Route path="/" element={<Home />} />
           <Route path="/piece/:slug" element={<PieceDetail />} />
         </Routes>
+        <Footer />
         <BackToTop />
       </CatalogProvider>
     </LanguageProvider>
