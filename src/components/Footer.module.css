@@ -29,6 +29,35 @@
   gap: var(--space-3);
 }
 
+.people {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.person {
+  flex: 1 1 0;
+  max-width: 220px;
+  margin: 0;
+}
+
+.person img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.person figcaption {
+  margin-top: var(--space-2);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--color-fg-muted);
+}
+
 .heading {
   font-family: var(--font-heading);
   font-weight: 500;

@@ -1,5 +1,7 @@
 import { useLanguage } from '../i18n/LanguageContext'
 import { useScrollReveal } from '../hooks/useScrollReveal'
+import noamPhoto from '../assets/about/noam.jpg'
+import ayalaPhoto from '../assets/about/ayala.jpg'
 import styles from './Footer.module.css'
 
 const WHATSAPP_NUMBERS = {
@@ -21,6 +23,16 @@ export function Footer() {
       <div ref={ref} className={styles.inner}>
         <div className={styles.about}>
           <span className={styles.eyebrow}>{locale === 'he' ? 'אודות' : 'About'}</span>
+          <div className={styles.people}>
+            <figure className={styles.person}>
+              <img src={noamPhoto} alt={locale === 'he' ? 'נועם' : 'Noam'} width={800} height={1000} loading="lazy" />
+              <figcaption>{locale === 'he' ? 'נועם' : 'Noam'}</figcaption>
+            </figure>
+            <figure className={styles.person}>
+              <img src={ayalaPhoto} alt={locale === 'he' ? 'איילה' : 'Ayala'} width={800} height={1000} loading="lazy" />
+              <figcaption>{locale === 'he' ? 'איילה' : 'Ayala'}</figcaption>
+            </figure>
+          </div>
           {locale === 'he' ? (
             <>
               <h2 className={styles.heading}>GIGO התחיל מתכשיטי הסבתות שלנו.</h2>
