@@ -4,7 +4,7 @@
 }
 
 .inner {
-  max-width: 640px;
+  max-width: 760px;
   margin-inline: auto;
   padding: var(--space-7) var(--space-4);
   display: flex;
@@ -23,23 +23,68 @@
   margin-bottom: var(--space-3);
 }
 
+/* Mobile: photos sit side by side in their own row above the text.
+   Desktop (see below): they flank the text block instead, bookend-style. */
 .about {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    'eyebrow eyebrow'
+    'noam ayala'
+    'text text';
+  justify-items: center;
+  align-items: start;
+  gap: var(--space-3) var(--space-4);
+}
+
+.about .eyebrow {
+  grid-area: eyebrow;
+  margin-bottom: 0;
+}
+
+.textBlock {
+  grid-area: text;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.people {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
+.person {
+  margin: 0;
+  width: 108px;
 }
 
-.person {
-  flex: 0 0 auto;
-  width: 108px;
-  margin: 0;
+.personNoam {
+  grid-area: noam;
+  justify-self: end;
+}
+
+.personAyala {
+  grid-area: ayala;
+  justify-self: start;
+}
+
+@media (min-width: 860px) {
+  .about {
+    grid-template-columns: auto minmax(0, 480px) auto;
+    grid-template-areas:
+      'eyebrow eyebrow eyebrow'
+      'noam text ayala';
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .personNoam {
+    justify-self: end;
+  }
+
+  .personAyala {
+    justify-self: start;
+  }
+
+  .person {
+    width: 150px;
+  }
 }
 
 .person img {

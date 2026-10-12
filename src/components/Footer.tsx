@@ -23,39 +23,42 @@ export function Footer() {
       <div ref={ref} className={styles.inner}>
         <div className={styles.about}>
           <span className={styles.eyebrow}>{locale === 'he' ? 'אודות' : 'About'}</span>
-          <div className={styles.people}>
-            <figure className={styles.person}>
-              <img src={noamPhoto} alt={locale === 'he' ? 'נועם' : 'Noam'} width={800} height={1000} loading="lazy" />
-              <figcaption>{locale === 'he' ? 'נועם' : 'Noam'}</figcaption>
-            </figure>
-            <figure className={styles.person}>
-              <img src={ayalaPhoto} alt={locale === 'he' ? 'איילה' : 'Ayala'} width={800} height={1000} loading="lazy" />
-              <figcaption>{locale === 'he' ? 'איילה' : 'Ayala'}</figcaption>
-            </figure>
+
+          <figure className={`${styles.person} ${styles.personNoam}`}>
+            <img src={noamPhoto} alt={locale === 'he' ? 'נועם' : 'Noam'} width={800} height={1000} loading="lazy" />
+            <figcaption>{locale === 'he' ? 'נועם' : 'Noam'}</figcaption>
+          </figure>
+
+          <div className={styles.textBlock}>
+            {locale === 'he' ? (
+              <>
+                <h2 className={styles.heading}>GIGO התחיל מתכשיטי הסבתות שלנו.</h2>
+                <p>תכשיטים ישנים, צורות שגדלנו עליהן, דברים שנשמרו ועברו מדור לדור — ומשם התחלנו ליצור משהו משלנו.</p>
+                <p>
+                  אנחנו נועם, אדריכל, ואיילה, צורפת. אנחנו מגיעים מעולמות שונים, והעבודה שלנו נוצרת איפשהו בחיבור ביניהם בין תכנון
+                  במחשב לעבודה ביד, בין ישן לחדש.
+                </p>
+                <p>כל התכשיטים מיוצרים על ידינו כאן בארץ, מכסף 925, זהב ואבנים.</p>
+                <p>אנחנו אוהבים חומרים שנשארים, ותכשיטים שאפשר לענוד שנים ובסוף אולי גם להעביר הלאה.</p>
+              </>
+            ) : (
+              <>
+                <h2 className={styles.heading}>GIGO began with our grandmothers&rsquo; jewelry.</h2>
+                <p>Old pieces, familiar shapes, things made to last — kept, worn and passed on.</p>
+                <p>
+                  We&rsquo;re Noam, an architect, and Ayala, a jeweler and maker. Together we create somewhere between digital design
+                  and working by hand, giving old references new forms.
+                </p>
+                <p>Made locally in Israel, using sterling silver, gold and natural stones — materials that age, live with you, and are made to stay.</p>
+                <p>Pieces to wear now, keep forever, and maybe one day pass on.</p>
+              </>
+            )}
           </div>
-          {locale === 'he' ? (
-            <>
-              <h2 className={styles.heading}>GIGO התחיל מתכשיטי הסבתות שלנו.</h2>
-              <p>תכשיטים ישנים, צורות שגדלנו עליהן, דברים שנשמרו ועברו מדור לדור — ומשם התחלנו ליצור משהו משלנו.</p>
-              <p>
-                אנחנו נועם, אדריכל, ואיילה, צורפת. אנחנו מגיעים מעולמות שונים, והעבודה שלנו נוצרת איפשהו בחיבור ביניהם בין תכנון במחשב
-                לעבודה ביד, בין ישן לחדש.
-              </p>
-              <p>כל התכשיטים מיוצרים על ידינו כאן בארץ, מכסף 925, זהב ואבנים.</p>
-              <p>אנחנו אוהבים חומרים שנשארים, ותכשיטים שאפשר לענוד שנים ובסוף אולי גם להעביר הלאה.</p>
-            </>
-          ) : (
-            <>
-              <h2 className={styles.heading}>GIGO began with our grandmothers&rsquo; jewelry.</h2>
-              <p>Old pieces, familiar shapes, things made to last — kept, worn and passed on.</p>
-              <p>
-                We&rsquo;re Noam, an architect, and Ayala, a jeweler and maker. Together we create somewhere between digital design and
-                working by hand, giving old references new forms.
-              </p>
-              <p>Made locally in Israel, using sterling silver, gold and natural stones — materials that age, live with you, and are made to stay.</p>
-              <p>Pieces to wear now, keep forever, and maybe one day pass on.</p>
-            </>
-          )}
+
+          <figure className={`${styles.person} ${styles.personAyala}`}>
+            <img src={ayalaPhoto} alt={locale === 'he' ? 'איילה' : 'Ayala'} width={800} height={1000} loading="lazy" />
+            <figcaption>{locale === 'he' ? 'איילה' : 'Ayala'}</figcaption>
+          </figure>
         </div>
 
         <div className={styles.contact}>
