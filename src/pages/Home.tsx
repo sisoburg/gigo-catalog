@@ -2,11 +2,13 @@ import { useMemo } from 'react'
 import { Hero } from '../components/Hero'
 import { Carousel } from '../components/Carousel'
 import { BrandFilmstrip, type FilmstripItem } from '../components/BrandFilmstrip'
+import { WornInterlude } from '../components/WornInterlude'
+import { WornReveal } from '../components/WornReveal'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useCatalog } from '../data/CatalogContext'
 import { useFilmstripItems } from '../data/useFilmstripItems'
 import { useScrollReveal } from '../hooks/useScrollReveal'
-import type { Piece } from '../data/types'
+import type { Piece, PieceMedia } from '../data/types'
 import styles from './Home.module.css'
 
 const FLOAT_ROTATIONS = [-6, 4, -5, 6, -3, 5]
@@ -59,6 +61,32 @@ function buildFilmstripItems(pieces: Piece[]): FilmstripItem[] {
   return items
 }
 
+interface RevealData {
+  heroMedia: PieceMedia
+  heroLabel: string
+  gridItems: PieceMedia[]
+}
+
+/** The reveal's hero plus a 6-up grid, pulled from pieces' later gallery
+ *  shots (not covers) so it reads as fresh material rather than a repeat
+ *  of the carousel above it. */
+function buildRevealData(pieces: Piece[], locale: 'en' | 'he'): RevealData | null {
+  if (pieces.length === 0) return null
+  const heroIndex = Math.min(2, pieces.length - 1)
+  const heroPiece = pieces[heroIndex]
+  const heroMedia = heroPiece.gallery[2] ?? heroPiece.gallery[1] ?? heroPiece.cover
+
+  const gridItems: PieceMedia[] = []
+  for (let i = 1; i <= pieces.length && gridItems.length < 6; i++) {
+    const piece = pieces[(heroIndex + i) % pieces.length]
+    const media = piece.gallery[1] ?? piece.gallery[0] ?? piece.cover
+    gridItems.push(media)
+  }
+  if (gridItems.length < 3) return null
+
+  return { heroMedia, heroLabel: heroPiece.name[locale], gridItems }
+}
+
 export function Home() {
   const { locale } = useLanguage()
   const { pieces, hero, loading, error } = useCatalog()
@@ -69,6 +97,7 @@ export function Home() {
     if (curatedFilmstripItems && curatedFilmstripItems.length > 0) return assignFloatRotations(curatedFilmstripItems)
     return autoFilmstripItems
   }, [curatedFilmstripItems, autoFilmstripItems])
+  const revealData = useMemo(() => buildRevealData(pieces, locale), [pieces, locale])
 
   if (loading) {
     return (
@@ -104,6 +133,12 @@ export function Home() {
         <Carousel pieces={pieces} />
       </section>
       {filmstripItems.length > 0 && <BrandFilmstrip items={filmstripItems} />}
+      {revealData && (
+        <>
+          <WornInterlude />
+          <WornReveal heroMedia={revealData.heroMedia} heroLabel={revealData.heroLabel} gridItems={revealData.gridItems} />
+        </>
+      )}
     </main>
   )
 }

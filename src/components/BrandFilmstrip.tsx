@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { PieceMedia } from '../data/types'
 import { useLanguage } from '../i18n/LanguageContext'
 import { ScrambleHeading } from './ScrambleHeading'
-import { scrollToY } from './SmoothScroll'
+import { skipPinnedSection } from '../lib/pinSkip'
 import styles from './BrandFilmstrip.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -102,17 +102,7 @@ export function BrandFilmstrip({ items }: BrandFilmstripProps) {
     return () => ctx.revert()
   }, [items])
 
-  const skip = (direction: 'up' | 'down') => {
-    // Read the live pin-spacer geometry rather than the ScrollTrigger
-    // instance's cached start/end — those go stale relative to the actual
-    // pin boundary once Lenis's own scroll-driven recalculation is in the
-    // mix, which left "skip down" landing short, still inside the pin.
-    const spacer = sectionRef.current?.closest<HTMLElement>('.pin-spacer')
-    if (!spacer) return
-    const top = spacer.getBoundingClientRect().top + window.scrollY
-    const target = direction === 'down' ? top + spacer.offsetHeight + 40 : top - 40
-    scrollToY(target)
-  }
+  const skip = (direction: 'up' | 'down') => skipPinnedSection(sectionRef.current, direction)
 
   return (
     <section ref={sectionRef} className={styles.section}>
