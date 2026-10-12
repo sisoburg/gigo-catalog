@@ -4,6 +4,15 @@ import type { Tables, TablesInsert } from '../lib/database.types'
 
 export type PieceRow = Tables<'pieces'>
 export type MediaRow = Tables<'media'>
+export type FilmstripItemRow = Tables<'filmstrip_items'>
+
+export interface FilmstripItemWithMedia extends FilmstripItemRow {
+  media: Pick<MediaRow, 'id' | 'kind' | 'path_thumbnail' | 'path_poster'> & { piece_name: string }
+}
+
+export interface BrowsableMedia extends Pick<MediaRow, 'id' | 'kind' | 'path_thumbnail' | 'path_poster' | 'piece_id'> {
+  piece_name: string
+}
 
 export async function fetchAllPieces(): Promise<PieceRow[]> {
   const { data, error } = await supabase.from('pieces').select('*').order('sort_order')
@@ -144,6 +153,68 @@ export async function insertMediaRow(row: TablesInsert<'media'>): Promise<MediaR
   const { data, error } = await supabase.from('media').insert(row).select('*').single()
   if (error) throw error
   return data
+}
+
+// --- WORN filmstrip curation ---
+
+export async function fetchFilmstripItems(): Promise<FilmstripItemWithMedia[]> {
+  const { data, error } = await supabase
+    .from('filmstrip_items')
+    .select('*, media(id, kind, path_thumbnail, path_poster, pieces(name_en))')
+    .order('sort_order')
+  if (error) throw error
+  return (data as unknown as Array<FilmstripItemRow & { media: MediaRow & { pieces: { name_en: string } } }>).map((row) => ({
+    ...row,
+    media: {
+      id: row.media.id,
+      kind: row.media.kind,
+      path_thumbnail: row.media.path_thumbnail,
+      path_poster: row.media.path_poster,
+      piece_name: row.media.pieces?.name_en ?? '',
+    },
+  }))
+}
+
+/** Every photo/video across every piece (including drafts), for the "add to
+ *  WORN" browser — curating ahead of publishing a piece is fine, since the
+ *  public read policy still hides it until that piece goes live. */
+export async function fetchAllMediaForBrowsing(): Promise<BrowsableMedia[]> {
+  const { data, error } = await supabase
+    .from('media')
+    .select('id, kind, path_thumbnail, path_poster, piece_id, pieces(name_en, sort_order)')
+    .order('sort_order')
+  if (error) throw error
+  return (data as unknown as Array<MediaRow & { pieces: { name_en: string; sort_order: number } }>)
+    .sort((a, b) => (a.pieces?.sort_order ?? 0) - (b.pieces?.sort_order ?? 0))
+    .map((row) => ({
+      id: row.id,
+      kind: row.kind,
+      path_thumbnail: row.path_thumbnail,
+      path_poster: row.path_poster,
+      piece_id: row.piece_id,
+      piece_name: row.pieces?.name_en ?? '',
+    }))
+}
+
+export async function addFilmstripItem(mediaId: string, size: string, layer: string): Promise<void> {
+  const { data: existing } = await supabase.from('filmstrip_items').select('sort_order').order('sort_order', { ascending: false }).limit(1)
+  const nextOrder = (existing?.[0]?.sort_order ?? -1) + 1
+  const { error } = await supabase.from('filmstrip_items').insert({ media_id: mediaId, size, layer, sort_order: nextOrder })
+  if (error) throw error
+}
+
+export async function removeFilmstripItem(id: string): Promise<void> {
+  const { error } = await supabase.from('filmstrip_items').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function updateFilmstripItem(id: string, patch: { size?: string; layer?: string }): Promise<void> {
+  const { error } = await supabase.from('filmstrip_items').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+export async function reorderFilmstripItems(orderedIds: string[]): Promise<void> {
+  await Promise.all(orderedIds.map((id, index) => supabase.from('filmstrip_items').update({ sort_order: index }).eq('id', id)))
 }
 
 export { publicUrl }

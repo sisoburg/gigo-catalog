@@ -14,6 +14,9 @@ export function AdminLayout() {
           <NavLink to="/admin/hero" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Hero
           </NavLink>
+          <NavLink to="/admin/worn" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Worn
+          </NavLink>
           <a href={BASE_PATH} target="_blank" rel="noreferrer">
             View site ↗
           </a>

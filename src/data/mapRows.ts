@@ -6,7 +6,7 @@ export function publicUrl(path: string): string {
   return supabase.storage.from('media').getPublicUrl(path).data.publicUrl
 }
 
-function mapMediaRow(row: Tables<'media'>): PieceMedia {
+export function mapMediaRow(row: Tables<'media'>): PieceMedia {
   if (row.kind === 'video') {
     return {
       kind: 'video',

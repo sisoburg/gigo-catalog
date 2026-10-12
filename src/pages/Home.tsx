@@ -4,9 +4,24 @@ import { Carousel } from '../components/Carousel'
 import { BrandFilmstrip, type FilmstripItem } from '../components/BrandFilmstrip'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useCatalog } from '../data/CatalogContext'
+import { useFilmstripItems } from '../data/useFilmstripItems'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import type { Piece } from '../data/types'
 import styles from './Home.module.css'
+
+const FLOAT_ROTATIONS = [-6, 4, -5, 6, -3, 5]
+
+/** Curated items (from /admin/worn) don't store a rotation — assign one by
+ *  position, same as the auto-built path below. */
+function assignFloatRotations(items: FilmstripItem[]): FilmstripItem[] {
+  let floatIndex = 0
+  return items.map((item) => {
+    if (item.layer !== 'float') return item
+    const rotate = FLOAT_ROTATIONS[floatIndex % FLOAT_ROTATIONS.length]
+    floatIndex++
+    return { ...item, rotate }
+  })
+}
 
 /** Builds the filmstrip's loose collage: one larger "base" shot per piece,
  *  plus — when a second distinct shot (or a video) is available — a smaller
@@ -47,8 +62,13 @@ function buildFilmstripItems(pieces: Piece[]): FilmstripItem[] {
 export function Home() {
   const { locale } = useLanguage()
   const { pieces, hero, loading, error } = useCatalog()
+  const { items: curatedFilmstripItems } = useFilmstripItems()
   const headingRef = useScrollReveal<HTMLDivElement>()
-  const filmstripItems = useMemo(() => buildFilmstripItems(pieces), [pieces])
+  const autoFilmstripItems = useMemo(() => buildFilmstripItems(pieces), [pieces])
+  const filmstripItems = useMemo(() => {
+    if (curatedFilmstripItems && curatedFilmstripItems.length > 0) return assignFloatRotations(curatedFilmstripItems)
+    return autoFilmstripItems
+  }, [curatedFilmstripItems, autoFilmstripItems])
 
   if (loading) {
     return (

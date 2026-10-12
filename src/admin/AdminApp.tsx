@@ -5,6 +5,7 @@ import { AdminLayout } from './AdminLayout'
 import { PieceList } from './PieceList'
 import { PieceEdit } from './PieceEdit'
 import { HeroSettings } from './HeroSettings'
+import { WornSettings } from './WornSettings'
 import './admin.css'
 
 function RequireAuth() {
@@ -33,6 +34,7 @@ export function AdminApp() {
             <Route path="piece/new" element={<PieceEdit />} />
             <Route path="piece/:id" element={<PieceEdit />} />
             <Route path="hero" element={<HeroSettings />} />
+            <Route path="worn" element={<WornSettings />} />
           </Route>
         </Route>
       </Routes>
