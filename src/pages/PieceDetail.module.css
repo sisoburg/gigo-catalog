@@ -1,6 +1,12 @@
 .main {
+  /* #root is a column flex container, and <main> is a flex item with
+     auto cross-axis margins (margin-inline: auto) — that combination
+     suppresses stretch and falls back to shrink-to-fit sizing, which
+     settled at the max-width cap once wide content (the gallery's
+     scroll track) was inside. width:100% avoids that entirely. */
+  width: 100%;
   max-width: 640px;
-  margin: 0 auto;
+  margin-inline: auto;
   padding: var(--space-6) var(--space-4) var(--space-7);
   min-height: 60svh;
 }
