@@ -1,0 +1,31 @@
+.section {
+  max-width: 900px;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4) 0;
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.row {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding-inline: var(--space-1);
+  justify-content: safe center;
+}
+
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+.row > * {
+  scroll-snap-align: start;
+}
