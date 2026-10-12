@@ -78,12 +78,23 @@ export function Carousel({ pieces }: CarouselProps) {
   }, [])
 
   // --- shared "which way is visually left/right" helper for keys + arrows ---
-  const goToIndex = useCallback((index: number) => {
-    const track = trackRef.current
-    if (!track) return
-    const clamped = Math.max(0, Math.min(pieces.length - 1, index))
-    const item = track.children[clamped] as HTMLElement | undefined
-    item?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+  const goToIndex = useCallback(
+    (index: number, instant = false) => {
+      const track = trackRef.current
+      if (!track) return
+      const clamped = Math.max(0, Math.min(pieces.length - 1, index))
+      const item = track.children[clamped] as HTMLElement | undefined
+      item?.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', inline: 'center', block: 'nearest' })
+    },
+    [pieces.length],
+  )
+
+  // Start centered on the middle piece instead of the first — starting at
+  // index 0 left the whole left side of the viewport empty until the visitor
+  // scrolled, which read as broken rather than "this is the start."
+  useLayoutEffect(() => {
+    goToIndex(Math.floor(pieces.length / 2), true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pieces.length])
 
   const visualStep = useCallback(
@@ -215,7 +226,13 @@ export function Carousel({ pieces }: CarouselProps) {
           aria-roledescription="carousel"
         >
           {pieces.map((piece, index) => (
-            <PieceCard key={piece.slug} piece={piece} index={index} active={index === activeIndex} />
+            <PieceCard
+              key={piece.slug}
+              piece={piece}
+              index={index}
+              active={index === activeIndex}
+              onFocusCard={() => goToIndex(index)}
+            />
           ))}
         </div>
         <button
@@ -239,6 +256,9 @@ export function Carousel({ pieces }: CarouselProps) {
           {activeIndex + 1} / {pieces.length}
         </span>
       </div>
+      <p className={styles.hint}>
+        {locale === 'he' ? 'גררו, החליקו, או השתמשו בחצים לעיון — לחיצה על פריט תמקד אותו' : 'Drag, swipe, or use the arrows to browse — click a piece to bring it into focus'}
+      </p>
     </div>
   )
 }

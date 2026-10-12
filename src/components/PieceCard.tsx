@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Piece } from '../data/types'
 import { useLanguage } from '../i18n/LanguageContext'
 import { setPendingTransition } from '../transitionStore'
@@ -9,14 +9,17 @@ interface PieceCardProps {
   piece: Piece
   index: number
   active: boolean
+  /** Scrolls this card into the centered/focused position without entering it. */
+  onFocusCard: () => void
 }
 
 const LONG_PRESS_MS = 280
 const AUTO_CYCLE_MS = 650
 const MOVE_CANCEL_THRESHOLD = 8
 
-export function PieceCard({ piece, index, active }: PieceCardProps) {
+export function PieceCard({ piece, index, active, onFocusCard }: PieceCardProps) {
   const { locale } = useLanguage()
+  const navigate = useNavigate()
   const imgRef = useRef<HTMLImageElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [previewIndex, setPreviewIndex] = useState(0)
@@ -25,10 +28,30 @@ export function PieceCard({ piece, index, active }: PieceCardProps) {
   const previewPhotos = piece.gallery.filter((m) => m.kind === 'photo').slice(0, 5)
   const canPeek = previewPhotos.length > 1
 
-  const handleClick = () => {
+  const enter = () => {
     const img = imgRef.current
-    if (!img) return
-    setPendingTransition({ slug: piece.slug, rect: img.getBoundingClientRect(), src: piece.cover.large })
+    if (img) setPendingTransition({ slug: piece.slug, rect: img.getBoundingClientRect(), src: piece.cover.large })
+    navigate(`/piece/${piece.slug}`)
+  }
+
+  // First click on an un-focused card just brings it to center (matches
+  // scrolling there by hand); a click once it's already centered opens it —
+  // the "View piece" button in the caption is the same action made explicit.
+  const handleImageClick = () => {
+    if (active) enter()
+    else onFocusCard()
+  }
+
+  const handleImageKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleImageClick()
+    }
+  }
+
+  const handleViewClick = (e: ReactMouseEvent) => {
+    e.preventDefault()
+    enter()
   }
 
   // --- desktop: moving across the image scrubs through the gallery ---
@@ -99,16 +122,15 @@ export function PieceCard({ piece, index, active }: PieceCardProps) {
   )
 
   return (
-    <Link
-      to={`/piece/${piece.slug}`}
-      className={active ? `${styles.card} ${styles.active}` : styles.card}
-      data-carousel-item={index}
-      aria-label={piece.name[locale]}
-      onClick={handleClick}
-    >
+    <div className={active ? `${styles.card} ${styles.active}` : styles.card} data-carousel-item={index}>
       <div
         ref={wrapRef}
         className={styles.imageWrap}
+        role="button"
+        tabIndex={0}
+        aria-label={active ? (locale === 'he' ? `פתיחת ${piece.name[locale]}` : `Open ${piece.name[locale]}`) : piece.name[locale]}
+        onClick={handleImageClick}
+        onKeyDown={handleImageKeyDown}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onPointerDown={handleTouchStart}
@@ -138,7 +160,15 @@ export function PieceCard({ piece, index, active }: PieceCardProps) {
       <div className={styles.caption}>
         <h3 className={styles.name}>{piece.name[locale]}</h3>
         <p className={styles.materials}>{piece.materials[locale]}</p>
+        <Link
+          to={`/piece/${piece.slug}`}
+          className={active ? `${styles.viewButton} ${styles.viewButtonVisible}` : styles.viewButton}
+          tabIndex={active ? 0 : -1}
+          onClick={handleViewClick}
+        >
+          {locale === 'he' ? 'צפייה בפריט ←' : 'View piece →'}
+        </Link>
       </div>
-    </Link>
+    </div>
   )
 }

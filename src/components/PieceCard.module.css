@@ -22,6 +22,12 @@
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--color-bg-raised);
+  cursor: pointer;
+}
+
+.imageWrap:focus-visible {
+  outline: 2px solid var(--color-fg);
+  outline-offset: 3px;
 }
 
 .image {
@@ -112,6 +118,32 @@
   font-size: 0.8rem;
   color: var(--color-grey);
   margin-top: var(--space-1);
+}
+
+.viewButton {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--color-fg);
+  border-bottom: 1px solid var(--color-fg);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.35s var(--ease-signature), transform 0.35s var(--ease-signature);
+}
+
+.viewButtonVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewButton {
+    transition: none;
+  }
 }
 
 @media (min-width: 640px) {
