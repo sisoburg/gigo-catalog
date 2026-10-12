@@ -23,7 +23,7 @@ cp .env.example .env.local   # already has the real values — see "Where the ke
 npm run dev
 ```
 
-Opens at `http://localhost:5173/Gigo_catalog/`.
+Opens at `http://localhost:5173/gigo-catalog/`.
 
 ## Logging into admin
 
@@ -44,26 +44,25 @@ Changes are live on the public site immediately — no redeploy.
 
 ## Deploying
 
-The build/deploy workflow (`.github/workflows/deploy.yml`) is ready but needs
-a GitHub repo to run against:
+Repo: https://github.com/sisoburg/gigo-catalog — `BASE_PATH` (`src/basePath.ts`)
+and `public/404.html` are set to `/gigo-catalog/` to match it.
 
-1. Create a GitHub repo. Note: on a free GitHub account, Pages only serves
-   from **public** repos (private-repo Pages needs Pro/Team/Enterprise) — the
-   deployed site itself is still unlisted and `noindex`'d either way, so this
-   only affects whether the *source code* is publicly visible, not whether
-   strangers can stumble onto the catalog.
-2. Push this repo to it (already on a `main` branch, matching the workflow):
+1. Push this repo to it (already on a `main` branch, matching the workflow):
    ```
-   git remote add origin <your-repo-url>
+   git remote add origin https://github.com/sisoburg/gigo-catalog.git
    git push -u origin main
    ```
-3. In the repo's Settings → Pages, set **Source** to "GitHub Actions."
-4. Push (or re-run the workflow from the Actions tab) — it builds and
+2. In the repo's Settings → Pages, set **Source** to "GitHub Actions."
+3. Push (or re-run the workflow from the Actions tab) — it builds and
    deploys automatically on every push to `main`.
-5. The site will be live at `https://<your-username>.github.io/<repo-name>/`.
-   If the repo name isn't `Gigo_catalog`, update `BASE_PATH` in
-   `src/basePath.ts` to match before deploying, or the asset paths and
-   deep links will be wrong.
+4. The site will be live at `https://sisoburg.github.io/gigo-catalog/`.
+
+Note: on a free GitHub account, Pages only serves from **public** repos
+(private-repo Pages needs Pro/Team/Enterprise) — the deployed site itself is
+still unlisted and `noindex`'d either way, so this only affects whether the
+*source code* is publicly visible, not whether strangers can stumble onto
+the catalog. If you'd rather rename the repo or make it private with a paid
+plan, update `BASE_PATH` and `public/404.html` to match first.
 
 A second workflow (`keep-alive.yml`) pings Supabase every 3 days so the free
 project doesn't pause from inactivity (Supabase pauses Free-tier projects
