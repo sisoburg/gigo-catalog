@@ -41,7 +41,12 @@ export async function fetchMediaForPiece(pieceId: string): Promise<MediaRow[]> {
 export async function createPiece(input: Partial<TablesInsert<'pieces'>>): Promise<PieceRow> {
   const { data: existing } = await supabase.from('pieces').select('sort_order').order('sort_order', { ascending: false }).limit(1)
   const nextOrder = (existing?.[0]?.sort_order ?? -1) + 1
-  const slug = (input.slug || input.name_en || 'piece').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `piece-${Date.now()}`
+  // "slug" has a unique constraint, and a brand-new piece has no name yet —
+  // always fall back to a timestamp-based slug, never a fixed literal like
+  // "piece" (clicking "+ New piece" twice without typing a name would then
+  // collide on the second one).
+  const base = (input.slug || input.name_en || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  const slug = base || `piece-${Date.now()}`
   const { data, error } = await supabase
     .from('pieces')
     .insert({

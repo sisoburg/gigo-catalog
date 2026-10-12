@@ -9,7 +9,7 @@ export function PieceEdit() {
   const [piece, setPiece] = useState<PieceRow | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [savedAt, setSavedAt] = useState<number | null>(null)
+  const [showSaved, setShowSaved] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -43,7 +43,8 @@ export function PieceEdit() {
         price: piece.price,
         is_draft: piece.is_draft,
       })
-      setSavedAt(Date.now())
+      setShowSaved(true)
+      setTimeout(() => setShowSaved(false), 3000)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to save')
     } finally {
@@ -83,7 +84,7 @@ export function PieceEdit() {
       </div>
 
       {error && <div className="alert error">{error}</div>}
-      {savedAt && Date.now() - savedAt < 3000 && <div className="alert info">Saved.</div>}
+      {showSaved && <div className="alert info">Saved.</div>}
 
       <div className="card">
         <div className="field">

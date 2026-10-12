@@ -36,7 +36,12 @@ export function loadVideoMeta(file: File): Promise<{ meta: VideoMeta; video: HTM
 
 export function captureVideoPoster(video: HTMLVideoElement, atSeconds = 0.3): Promise<Blob> {
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      video.removeEventListener('seeked', onSeeked)
+      reject(new Error('Timed out reading that video (unsupported format?)'))
+    }, 8000)
     const onSeeked = () => {
+      clearTimeout(timeout)
       video.removeEventListener('seeked', onSeeked)
       const canvas = document.createElement('canvas')
       canvas.width = video.videoWidth
@@ -50,7 +55,8 @@ export function captureVideoPoster(video: HTMLVideoElement, atSeconds = 0.3): Pr
       canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not capture a poster frame'))), 'image/webp', 0.85)
     }
     video.addEventListener('seeked', onSeeked)
-    video.currentTime = Math.min(atSeconds, Math.max(0, video.duration / 2))
+    const target = Number.isFinite(video.duration) ? Math.min(atSeconds, Math.max(0, video.duration / 2)) : atSeconds
+    video.currentTime = target
   })
 }
 
