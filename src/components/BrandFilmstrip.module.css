@@ -19,6 +19,53 @@
   color: color-mix(in srgb, var(--color-bg) 70%, transparent);
 }
 
+.heading {
+  position: absolute;
+  top: var(--space-6);
+  inset-inline-start: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 2;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(2.2rem, 7vw, 4.5rem);
+  line-height: 1;
+  color: var(--color-bg);
+  pointer-events: none;
+}
+
+.skipControls {
+  position: absolute;
+  bottom: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skipButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  color: var(--color-fg);
+  background: var(--color-bg);
+  opacity: 0.85;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.skipButton:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.tileInner {
+  width: 100%;
+  height: 100%;
+}
+
 .track {
   display: flex;
   align-items: center;

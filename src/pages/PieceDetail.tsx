@@ -6,6 +6,7 @@ import { useCatalog } from '../data/CatalogContext'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { consumePendingTransition } from '../transitionStore'
 import { recordView, getRecentlyViewed } from '../lib/recentlyViewed'
+import { formatPrice } from '../lib/formatPrice'
 import { Gallery } from '../components/Gallery'
 import { PieceRow } from '../components/PieceRow'
 import type { Piece } from '../data/types'
@@ -126,6 +127,7 @@ export function PieceDetail() {
       <div ref={infoRef} className={styles.info}>
         <h1 className={styles.name}>{piece.name[locale]}</h1>
         <p className={styles.materials}>{piece.materials[locale]}</p>
+        <p className={styles.price}>{formatPrice(piece.price, locale)}</p>
         <p className={styles.description}>{piece.description[locale]}</p>
       </div>
       <PieceRow title={locale === 'he' ? 'אולי יקסים אתכם גם' : 'You may also like'} pieces={relatedPieces} />

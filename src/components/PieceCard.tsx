@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import type { Piece } from '../data/types'
 import { useLanguage } from '../i18n/LanguageContext'
 import { setPendingTransition } from '../transitionStore'
+import { formatPrice } from '../lib/formatPrice'
 import styles from './PieceCard.module.css'
 
 interface PieceCardProps {
@@ -160,6 +161,7 @@ export function PieceCard({ piece, index, active, onFocusCard }: PieceCardProps)
       <div className={styles.caption}>
         <h3 className={styles.name}>{piece.name[locale]}</h3>
         <p className={styles.materials}>{piece.materials[locale]}</p>
+        <p className={styles.price}>{formatPrice(piece.price, locale)}</p>
         <Link
           to={`/piece/${piece.slug}`}
           className={active ? `${styles.viewButton} ${styles.viewButtonVisible}` : styles.viewButton}

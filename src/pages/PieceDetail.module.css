@@ -65,6 +65,12 @@
   margin-top: var(--space-2);
 }
 
+.price {
+  font-size: 1.05rem;
+  margin-top: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+
 .description {
   margin-top: var(--space-3);
   max-width: 48ch;

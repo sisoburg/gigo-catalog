@@ -37,17 +37,29 @@
 }
 
 .person {
-  flex: 1 1 0;
-  max-width: 220px;
+  flex: 0 0 auto;
+  width: 108px;
   margin: 0;
 }
 
 .person img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  /* The <img> has width/height HTML attributes (800x1000, for the browser's
+     layout-shift-prevention heuristic); those act as a low-priority
+     presentational hint for the `height` property specifically, which
+     without an explicit override here left height:1000px literal and
+     starved aspect-ratio of a free dimension to compute. */
+  height: auto;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 4px;
+}
+
+@media (min-width: 640px) {
+  .person {
+    width: 128px;
+  }
 }
 
 .person figcaption {

@@ -8,11 +8,18 @@ gsap.registerPlugin(ScrollTrigger)
 
 let lenisInstance: Lenis | null = null
 
-/** Smooth-scrolls to the top, using Lenis when it's running (reduced-motion
- *  users never get a Lenis instance, so this falls back to native scroll). */
+/** Smooth-scrolls to an absolute page Y position, using Lenis when it's
+ *  running — Lenis drives its own internal scroll target each frame, so a
+ *  raw window.scrollTo() gets fought and mostly undone on the next tick.
+ *  Reduced-motion users never get a Lenis instance, so this falls back to
+ *  native scroll. */
+export function scrollToY(y: number) {
+  if (lenisInstance) lenisInstance.scrollTo(y, { duration: 1.2 })
+  else window.scrollTo({ top: y, behavior: 'smooth' })
+}
+
 export function scrollToTop() {
-  if (lenisInstance) lenisInstance.scrollTo(0, { duration: 1.2 })
-  else window.scrollTo({ top: 0, behavior: 'smooth' })
+  scrollToY(0)
 }
 
 /**

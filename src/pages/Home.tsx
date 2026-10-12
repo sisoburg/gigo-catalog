@@ -9,10 +9,12 @@ import type { Piece } from '../data/types'
 import styles from './Home.module.css'
 
 /** Builds the filmstrip's loose collage: one larger "base" shot per piece,
- *  plus — when the piece has a video or a second distinct photo — a smaller
+ *  plus — when a second distinct shot (or a video) is available — a smaller
  *  rotated "float" tile overlapping it, so related shots of the same piece
- *  drift through the strip together. Skips gracefully if a piece has no
- *  photos yet. */
+ *  drift through the strip together. Prefers photos beyond index 1 (the
+ *  cover and the carousel's hover-preview shot) so this section shows
+ *  genuinely different images instead of repeating what's already visible
+ *  higher up the page. Skips gracefully if a piece has no photos yet. */
 function buildFilmstripItems(pieces: Piece[]): FilmstripItem[] {
   const baseSizes: FilmstripItem['size'][] = ['tall', 'square', 'wide']
   const floatSizes: FilmstripItem['size'][] = ['square', 'tall', 'wide']
@@ -20,12 +22,15 @@ function buildFilmstripItems(pieces: Piece[]): FilmstripItem[] {
   const items: FilmstripItem[] = []
   let sizeIndex = 0
   for (const piece of pieces) {
-    const basePhoto = piece.gallery[1] ?? piece.gallery[0]
-    if (!basePhoto) continue
+    const fresh = piece.gallery.slice(2)
+    const pool = fresh.length > 0 ? fresh : piece.gallery
+    if (pool.length === 0) continue
+
+    const video = pool.find((m) => m.kind === 'video')
+    const basePhoto = pool.find((m) => m.kind === 'photo') ?? pool[0]
     items.push({ media: basePhoto, size: baseSizes[sizeIndex % baseSizes.length], layer: 'base' })
 
-    const video = piece.gallery.find((m) => m.kind === 'video')
-    const floatCandidate = video ?? piece.gallery.find((m) => m !== basePhoto && m.kind === 'photo')
+    const floatCandidate = video ?? pool.find((m) => m !== basePhoto)
     if (floatCandidate) {
       items.push({
         media: floatCandidate,
