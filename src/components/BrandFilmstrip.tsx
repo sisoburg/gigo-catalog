@@ -66,7 +66,7 @@ export function BrandFilmstrip({ items }: BrandFilmstripProps) {
         {items.map(({ media, size }, i) => (
           <div key={i} className={`${styles.tile} ${styles[size]}`}>
             {media.kind === 'photo' ? (
-              <img src={media.src} alt={media.alt[locale]} loading="lazy" />
+              <img src={media.large} alt={media.alt[locale]} loading="lazy" />
             ) : (
               <FilmstripVideo
                 media={media}

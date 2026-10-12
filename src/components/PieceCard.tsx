@@ -28,7 +28,7 @@ export function PieceCard({ piece, index, active }: PieceCardProps) {
   const handleClick = () => {
     const img = imgRef.current
     if (!img) return
-    setPendingTransition({ slug: piece.slug, rect: img.getBoundingClientRect(), src: piece.cover.src })
+    setPendingTransition({ slug: piece.slug, rect: img.getBoundingClientRect(), src: piece.cover.large })
   }
 
   // --- desktop: moving across the image scrubs through the gallery ---
@@ -121,7 +121,7 @@ export function PieceCard({ piece, index, active }: PieceCardProps) {
             key={i}
             ref={i === 0 ? imgRef : undefined}
             className={i === previewIndex ? `${styles.image} ${styles.imageShown}` : styles.image}
-            src={photo.src}
+            src={photo.medium}
             alt={i === 0 ? piece.cover.alt[locale] : ''}
             aria-hidden={i === 0 ? undefined : true}
             loading={index < 2 && i === 0 ? 'eager' : 'lazy'}

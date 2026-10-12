@@ -7,8 +7,10 @@ export interface LocalizedText {
 
 export interface PhotoMedia {
   kind: 'photo'
-  /** Statically imported image URL for the hardcoded Stage 1/2 data. */
-  src: string
+  /** Public Supabase Storage URLs; pick the size that fits the context. */
+  thumbnail: string
+  medium: string
+  large: string
   alt: LocalizedText
 }
 
@@ -22,14 +24,19 @@ export interface VideoMedia {
 export type PieceMedia = PhotoMedia | VideoMedia
 
 export interface Piece {
+  id: string
   slug: string
   name: LocalizedText
   materials: LocalizedText
   description: LocalizedText
-  /** In agorot/cents-free whole currency units; absent = not for sale / inquire. */
+  /** Whole currency units (e.g. ILS); absent = not for sale / inquire. */
   price?: number
-  /** True content below is placeholder, pending real copy via /admin. */
-  isMock: boolean
   cover: PhotoMedia
   gallery: PieceMedia[]
+}
+
+export interface HeroMedia {
+  kind: 'photo' | 'video'
+  src: string
+  poster?: string
 }

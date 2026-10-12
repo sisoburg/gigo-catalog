@@ -1,47 +1,68 @@
-import { mockPieces } from '../data/mockPieces'
+import { useMemo } from 'react'
 import { Hero } from '../components/Hero'
 import { Carousel } from '../components/Carousel'
 import { BrandFilmstrip, type FilmstripItem } from '../components/BrandFilmstrip'
 import { useLanguage } from '../i18n/LanguageContext'
+import { useCatalog } from '../data/CatalogContext'
 import { useScrollReveal } from '../hooks/useScrollReveal'
+import type { Piece } from '../data/types'
 import styles from './Home.module.css'
 
-const HERO_PIECE = mockPieces.find((p) => p.slug === 'cutout-flower-ring')!
-
-const mazal = mockPieces.find((p) => p.slug === 'gemstone-dome-ring')!
-const bracha = mockPieces.find((p) => p.slug === 'ribbed-earrings-wide-blue')!
-const galya = mockPieces.find((p) => p.slug === 'green-stone-choker')!
-const jeanine = mockPieces.find((p) => p.slug === 'cutout-flower-ring')!
-
-// Pure atmosphere, not product listings — mixed sizes and a video for
-// rhythm, pulled from across all four pieces' galleries (not just covers).
-const FILMSTRIP_ITEMS: FilmstripItem[] = [
-  { media: mazal.gallery[0], size: 'tall' },
-  { media: bracha.gallery[3], size: 'square' },
-  { media: galya.gallery[0], size: 'tall' },
-  { media: jeanine.gallery[2], size: 'wide' },
-  { media: mazal.gallery[2], size: 'square' },
-  { media: bracha.gallery[1], size: 'tall' }, // video
-  { media: galya.gallery[2], size: 'square' },
-  { media: jeanine.gallery[0], size: 'tall' },
-  { media: mazal.gallery[4], size: 'square' },
-  { media: bracha.gallery[5], size: 'wide' },
-]
+/** Pulls a few photos spread across the collection for the filmstrip's mixed
+ *  sizes, skipping gracefully if a piece doesn't have that many photos yet. */
+function buildFilmstripItems(pieces: Piece[]): FilmstripItem[] {
+  const sizes: FilmstripItem['size'][] = ['tall', 'square', 'wide']
+  const items: FilmstripItem[] = []
+  let sizeIndex = 0
+  for (const piece of pieces) {
+    const media = piece.gallery[1] ?? piece.gallery[0]
+    if (!media) continue
+    items.push({ media, size: sizes[sizeIndex % sizes.length] })
+    sizeIndex++
+  }
+  return items
+}
 
 export function Home() {
   const { locale } = useLanguage()
+  const { pieces, hero, loading, error } = useCatalog()
   const headingRef = useScrollReveal<HTMLDivElement>()
+  const filmstripItems = useMemo(() => buildFilmstripItems(pieces), [pieces])
+
+  if (loading) {
+    return (
+      <main className={styles.loading} aria-busy="true">
+        <div className={styles.loadingMark} />
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className={styles.state}>
+        <p>{locale === 'he' ? 'שגיאה בטעינת האוסף. נסו לרענן.' : 'Something went wrong loading the collection. Try refreshing.'}</p>
+      </main>
+    )
+  }
+
+  if (pieces.length === 0) {
+    return (
+      <main className={styles.state}>
+        <p>{locale === 'he' ? 'האוסף יעודכן בקרוב.' : 'The collection is being updated — check back soon.'}</p>
+      </main>
+    )
+  }
 
   return (
     <main>
-      <Hero imageSrc={HERO_PIECE.cover.src} imageAlt={HERO_PIECE.cover.alt[locale]} />
+      {hero && <Hero media={hero} />}
       <section className={styles.collection}>
         <div ref={headingRef} className={styles.heading}>
           <h2>{locale === 'he' ? 'האוסף' : 'The Collection'}</h2>
         </div>
-        <Carousel pieces={mockPieces} />
+        <Carousel pieces={pieces} />
       </section>
-      <BrandFilmstrip items={FILMSTRIP_ITEMS} />
+      {filmstripItems.length > 0 && <BrandFilmstrip items={filmstripItems} />}
     </main>
   )
 }

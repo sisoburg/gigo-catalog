@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import gsap from 'gsap'
-import { mockPieces } from '../data/mockPieces'
 import { useLanguage } from '../i18n/LanguageContext'
+import { useCatalog } from '../data/CatalogContext'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { consumePendingTransition } from '../transitionStore'
 import { Gallery } from '../components/Gallery'
@@ -11,19 +11,24 @@ import styles from './PieceDetail.module.css'
 export function PieceDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { locale } = useLanguage()
-  const piece = mockPieces.find((p) => p.slug === slug)
+  const { pieces, loading, error } = useCatalog()
+  const piece = pieces.find((p) => p.slug === slug)
   const heroImgRef = useRef<HTMLImageElement>(null)
   const [overlayVisible, setOverlayVisible] = useState(false)
   const infoRef = useScrollReveal<HTMLDivElement>()
+  const transitionRanRef = useRef(false)
 
   // The signature moment: the clicked carousel card's cover image morphs
   // into place over the real (fading-in) hero image, then disappears.
+  // Guarded to run once: `piece` only becomes defined once the catalog
+  // finishes loading, so this effect fires on that transition, not on mount.
   useLayoutEffect(() => {
-    if (!piece) return
+    if (!piece || transitionRanRef.current) return
     const pending = consumePendingTransition(piece.slug)
     const heroImg = heroImgRef.current
     if (!pending || !heroImg) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    transitionRanRef.current = true
 
     const targetRect = heroImg.getBoundingClientRect()
     const overlay = document.createElement('img')
@@ -50,15 +55,34 @@ export function PieceDetail() {
     })
 
     return () => overlay.remove()
-    // Intentionally run once on mount only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [piece])
+
+  if (loading) {
+    return (
+      <main className={styles.main} aria-busy="true">
+        <div className={styles.loadingMark} />
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className={styles.main}>
+        <p>{locale === 'he' ? 'שגיאה בטעינת הפריט. נסו לרענן.' : 'Something went wrong loading this piece. Try refreshing.'}</p>
+        <Link to="/" className={styles.back}>
+          {locale === 'he' ? '← חזרה לאוסף' : '← Back to collection'}
+        </Link>
+      </main>
+    )
+  }
 
   if (!piece) {
     return (
       <main className={styles.main}>
         <p>{locale === 'he' ? 'הפריט לא נמצא' : 'Piece not found'}</p>
-        <Link to="/">{locale === 'he' ? 'חזרה' : 'Back'}</Link>
+        <Link to="/" className={styles.back}>
+          {locale === 'he' ? '← חזרה לאוסף' : '← Back to collection'}
+        </Link>
       </main>
     )
   }

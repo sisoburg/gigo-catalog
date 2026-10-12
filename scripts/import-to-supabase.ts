@@ -2,12 +2,18 @@
 // and inserts the matching pieces/media rows. Safe to re-run — pieces are
 // upserted by slug, and each run replaces that piece's media rows.
 //
+// Already run successfully once (all 7 pieces live in Supabase). Its source
+// images under src/assets/pieces/ were deleted afterward since the app now
+// reads from Storage, not the bundle — re-running this script as-is will
+// fail until those folders are restored from the Drive export again.
+//
 // Usage:
 //   SUPABASE_ADMIN_PASSWORD=... npx tsx scripts/import-to-supabase.ts
 //
 // Reads SUPABASE_URL / SUPABASE_ANON_KEY from .env.local (same values the
 // app uses) and signs in as the admin account to satisfy RLS — no service
-// key involved.
+// key involved. (Root cause of the earlier RLS failures: passing
+// `upsert: true` to storage.upload() on a brand-new object — removed below.)
 
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
@@ -198,20 +204,40 @@ async function toWebp(srcPath: string, maxWidth: number): Promise<Buffer> {
 async function upload(storagePath: string, body: Buffer | Uint8Array, contentType: string) {
   const { error } = await supabase.storage.from('media').upload(storagePath, body, {
     contentType,
-    upsert: true,
   })
-  if (error) throw new Error(`upload ${storagePath}: ${error.message}`)
+  if (error) {
+    console.error('Full upload error object:', JSON.stringify(error, null, 2))
+    throw new Error(`upload ${storagePath}: ${error.message}`)
+  }
   return storagePath
+}
+
+function decodeJwt(token: string): Record<string, unknown> {
+  const payload = token.split('.')[1]
+  return JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8'))
 }
 
 async function main() {
   console.log(`Signing in as ${ADMIN_EMAIL}...`)
-  const { error: authError } = await supabase.auth.signInWithPassword({
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email: ADMIN_EMAIL,
     password: ADMIN_PASSWORD!,
   })
   if (authError) throw new Error(`Sign-in failed: ${authError.message}`)
-  console.log('Signed in.\n')
+  console.log('Signed in.')
+
+  const token = authData.session?.access_token
+  if (token) {
+    const claims = decodeJwt(token)
+    console.log('Session JWT claims:', JSON.stringify({ role: claims.role, aud: claims.aud, sub: claims.sub, iss: claims.iss }, null, 2))
+  }
+
+  // Prove the session actually carries write access before touching storage.
+  const probe = await supabase.from('pieces').select('id').limit(1)
+  console.log('DB read probe (should succeed, RLS allows authenticated full access):', probe.error ? probe.error.message : 'ok')
+  const writeProbe = await supabase.from('site_settings').update({ hero_kind: 'photo' }).eq('id', true).select()
+  console.log('DB write probe (should succeed under admin RLS policy):', writeProbe.error ? writeProbe.error.message : 'ok')
+  console.log()
 
   for (const [pieceIndex, piece] of PIECES.entries()) {
     console.log(`--- ${piece.name.en} (${piece.slug}) ---`)

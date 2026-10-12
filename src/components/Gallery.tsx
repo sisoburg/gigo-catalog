@@ -151,7 +151,7 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
               <img
                 ref={index === 0 ? firstImageRef : undefined}
                 className={zoomedIndex === index ? `${styles.media} ${styles.zoomed}` : styles.media}
-                src={item.src}
+                src={item.large}
                 alt={item.alt[locale]}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 onClick={() => setZoomedIndex((z) => (z === index ? null : index))}

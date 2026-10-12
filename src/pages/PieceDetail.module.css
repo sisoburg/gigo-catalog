@@ -2,6 +2,30 @@
   max-width: 640px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-4) var(--space-7);
+  min-height: 60svh;
+}
+
+.loadingMark {
+  width: 2rem;
+  height: 2rem;
+  margin: var(--space-6) auto;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-line);
+  border-top-color: var(--color-fg);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingMark {
+    animation: none;
+    border-top-color: var(--color-line);
+  }
 }
 
 .back {
