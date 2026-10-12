@@ -78,20 +78,24 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
     [items.length],
   )
 
+  // Physical-left/right, not mirrored by language direction — see Carousel.tsx.
+  const visualStep = useCallback((towardVisualRight: boolean) => (dir === 'rtl' ? (towardVisualRight ? -1 : 1) : towardVisualRight ? 1 : -1), [dir])
+  const goVisualLeft = useCallback(() => goToIndex(activeIndex + visualStep(false)), [goToIndex, visualStep, activeIndex])
+  const goVisualRight = useCallback(() => goToIndex(activeIndex + visualStep(true)), [goToIndex, visualStep, activeIndex])
+
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const visualStep = (visualRight: boolean) => (dir === 'rtl' ? (visualRight ? -1 : 1) : visualRight ? 1 : -1)
       if (e.key === 'ArrowRight') {
         e.preventDefault()
-        goToIndex(activeIndex + visualStep(true))
+        goVisualRight()
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
-        goToIndex(activeIndex + visualStep(false))
+        goVisualLeft()
       } else if (e.key === 'Escape' && zoomedIndex !== null) {
         setZoomedIndex(null)
       }
     },
-    [activeIndex, dir, goToIndex, zoomedIndex],
+    [goVisualLeft, goVisualRight, zoomedIndex],
   )
 
   // Measured from scrollLeft rather than IntersectionObserver — see Carousel.tsx
@@ -134,40 +138,98 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
     }
   }, [items])
 
+  const atVisualLeftEnd = dir === 'rtl' ? activeIndex === items.length - 1 : activeIndex === 0
+  const atVisualRightEnd = dir === 'rtl' ? activeIndex === 0 : activeIndex === items.length - 1
+
   return (
     <div className={styles.wrapper}>
-      <div
-        ref={trackRef}
-        className={styles.track}
-        onPointerDown={onPointerDown}
-        onKeyDown={onKeyDown}
-        tabIndex={0}
-        role="region"
-        aria-roledescription="carousel"
-      >
-        {items.map((item, index) => (
-          <div key={index} className={styles.slide} data-gallery-item={index}>
-            {item.kind === 'photo' ? (
+      <div className={styles.viewport}>
+        {items.length > 1 && (
+          <button
+            type="button"
+            className={styles.arrowLeft}
+            onClick={goVisualLeft}
+            disabled={atVisualLeftEnd}
+            aria-label={locale === 'he' ? 'הקודם' : 'Previous'}
+          >
+            <ArrowIcon />
+          </button>
+        )}
+        <div
+          ref={trackRef}
+          className={styles.track}
+          onPointerDown={onPointerDown}
+          onKeyDown={onKeyDown}
+          tabIndex={0}
+          role="region"
+          aria-roledescription="carousel"
+        >
+          {items.map((item, index) => (
+            <div key={index} className={styles.slide} data-gallery-item={index}>
+              {item.kind === 'photo' ? (
+                <img
+                  ref={index === 0 ? firstImageRef : undefined}
+                  className={zoomedIndex === index ? `${styles.media} ${styles.zoomed}` : styles.media}
+                  src={item.large}
+                  alt={item.alt[locale]}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  onClick={() => setZoomedIndex((z) => (z === index ? null : index))}
+                />
+              ) : (
+                <GalleryVideo item={item} active={index === activeIndex} alt={item.alt[locale]} />
+              )}
+            </div>
+          ))}
+        </div>
+        {items.length > 1 && (
+          <button
+            type="button"
+            className={styles.arrowRight}
+            onClick={goVisualRight}
+            disabled={atVisualRightEnd}
+            aria-label={locale === 'he' ? 'הבא' : 'Next'}
+          >
+            <ArrowIcon flipped />
+          </button>
+        )}
+      </div>
+      {items.length > 1 && (
+        <div className={styles.thumbs} role="tablist" aria-label={locale === 'he' ? 'כל התמונות' : 'All photos'}>
+          {items.map((item, index) => (
+            <button
+              key={index}
+              type="button"
+              role="tab"
+              aria-selected={index === activeIndex}
+              aria-label={`${index + 1}`}
+              className={index === activeIndex ? `${styles.thumb} ${styles.thumbActive}` : styles.thumb}
+              onClick={() => goToIndex(index)}
+            >
               <img
-                ref={index === 0 ? firstImageRef : undefined}
-                className={zoomedIndex === index ? `${styles.media} ${styles.zoomed}` : styles.media}
-                src={item.large}
-                alt={item.alt[locale]}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                onClick={() => setZoomedIndex((z) => (z === index ? null : index))}
+                src={item.kind === 'photo' ? item.thumbnail : item.poster}
+                alt=""
+                loading="lazy"
               />
-            ) : (
-              <GalleryVideo item={item} active={index === activeIndex} alt={item.alt[locale]} />
-            )}
-          </div>
-        ))}
-      </div>
-      <div className={styles.dashes} aria-hidden="true">
-        {items.map((_, index) => (
-          <span key={index} className={index === activeIndex ? styles.dashActive : styles.dash} />
-        ))}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
+  )
+}
+
+function ArrowIcon({ flipped }: { flipped?: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="14"
+      viewBox="0 0 18 14"
+      fill="none"
+      style={flipped ? { transform: 'scaleX(-1)' } : undefined}
+      aria-hidden="true"
+    >
+      <path d="M1 7H17M17 7L11 1M17 7L11 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
 
