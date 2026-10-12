@@ -8,16 +8,32 @@ import { useScrollReveal } from '../hooks/useScrollReveal'
 import type { Piece } from '../data/types'
 import styles from './Home.module.css'
 
-/** Pulls a few photos spread across the collection for the filmstrip's mixed
- *  sizes, skipping gracefully if a piece doesn't have that many photos yet. */
+/** Builds the filmstrip's loose collage: one larger "base" shot per piece,
+ *  plus — when the piece has a video or a second distinct photo — a smaller
+ *  rotated "float" tile overlapping it, so related shots of the same piece
+ *  drift through the strip together. Skips gracefully if a piece has no
+ *  photos yet. */
 function buildFilmstripItems(pieces: Piece[]): FilmstripItem[] {
-  const sizes: FilmstripItem['size'][] = ['tall', 'square', 'wide']
+  const baseSizes: FilmstripItem['size'][] = ['tall', 'square', 'wide']
+  const floatSizes: FilmstripItem['size'][] = ['square', 'tall', 'wide']
+  const rotations = [-6, 4, -5, 6, -3, 5]
   const items: FilmstripItem[] = []
   let sizeIndex = 0
   for (const piece of pieces) {
-    const media = piece.gallery[1] ?? piece.gallery[0]
-    if (!media) continue
-    items.push({ media, size: sizes[sizeIndex % sizes.length] })
+    const basePhoto = piece.gallery[1] ?? piece.gallery[0]
+    if (!basePhoto) continue
+    items.push({ media: basePhoto, size: baseSizes[sizeIndex % baseSizes.length], layer: 'base' })
+
+    const video = piece.gallery.find((m) => m.kind === 'video')
+    const floatCandidate = video ?? piece.gallery.find((m) => m !== basePhoto && m.kind === 'photo')
+    if (floatCandidate) {
+      items.push({
+        media: floatCandidate,
+        size: floatSizes[sizeIndex % floatSizes.length],
+        layer: 'float',
+        rotate: rotations[items.length % rotations.length],
+      })
+    }
     sizeIndex++
   }
   return items
