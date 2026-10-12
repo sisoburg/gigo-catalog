@@ -17,6 +17,7 @@
 }
 
 .imageWrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 5;
   overflow: hidden;
@@ -24,17 +25,60 @@
 }
 
 .image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
   pointer-events: none;
   user-select: none;
-  transition: transform 0.7s var(--ease-signature);
+  opacity: 0;
+  transform: scale(1.03);
+  transition:
+    opacity 0.45s var(--ease-signature),
+    transform 0.7s var(--ease-signature);
 }
 
-.card.active:hover .image {
+.imageShown {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.card.active:hover .imageShown {
   transform: scale(1.045);
+}
+
+.peekDots {
+  position: absolute;
+  bottom: var(--space-2);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.peekDotsVisible {
+  opacity: 1;
+}
+
+.peekDot,
+.peekDotActive {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(247, 244, 239, 0.5);
+  box-shadow: 0 0 0 1px rgba(22, 20, 15, 0.25);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.peekDotActive {
+  background: #f7f4ef;
+  transform: scale(1.3);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -46,7 +90,7 @@
   .image {
     transition: none;
   }
-  .card.active:hover .image {
+  .card.active:hover .imageShown {
     transform: none;
   }
 }

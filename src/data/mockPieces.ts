@@ -33,7 +33,7 @@ export const mockPieces: Piece[] = [
   {
     slug: 'gemstone-dome-ring',
     isMock: true,
-    name: { en: 'Gemstone Dome Ring', he: 'טבעת כיפה משובצת אבנים' },
+    name: { en: 'Mazal', he: 'מזל' },
     materials: { en: 'Sterling silver, mixed gemstones', he: 'כסף 925, אבנים מעורבות' },
     description: {
       en: 'A softly domed silver ring scattered with small, colorful gemstones.',
@@ -51,7 +51,7 @@ export const mockPieces: Piece[] = [
   {
     slug: 'ribbed-earrings-wide-blue',
     isMock: true,
-    name: { en: 'Wide Ribbed Earrings, Blue Stone', he: 'עגילים מצולעים רחבים, אבן כחולה' },
+    name: { en: 'Bracha', he: 'ברכה' },
     materials: { en: 'Sterling silver, blue stone accent', he: 'כסף 925, נגיעת אבן כחולה' },
     description: {
       en: 'Wide ribbed silver hoops finished with a single blue stone.',
@@ -75,7 +75,7 @@ export const mockPieces: Piece[] = [
   {
     slug: 'green-stone-choker',
     isMock: true,
-    name: { en: 'Green Stone Choker', he: "צ'וקר אבן ירוקה" },
+    name: { en: 'Galya', he: 'גליה' },
     materials: { en: 'Sterling silver, green gemstone', he: 'כסף 925, אבן ירוקה' },
     description: {
       en: 'A double-strand silver chain with a single green gemstone drop.',
@@ -92,7 +92,7 @@ export const mockPieces: Piece[] = [
   {
     slug: 'cutout-flower-ring',
     isMock: true,
-    name: { en: 'Cutout Flower Ring', he: 'טבעת פרח חתוכה' },
+    name: { en: 'Jeanine', he: "ג'נין" },
     materials: { en: 'Sterling silver, gemstone accent', he: 'כסף 925, נגיעת אבן חן' },
     description: {
       en: 'An open floral silhouette ring with a petal of colored stone.',
