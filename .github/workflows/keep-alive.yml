@@ -1,0 +1,29 @@
+name: Keep Supabase Project Awake
+
+# Supabase's Free plan pauses a project after 7 days with no API activity.
+# This pings a public, RLS-protected read endpoint every 3 days so the
+# catalog never goes to sleep. The anon key here is the same public key
+# shipped in the client bundle — safe to commit (see .env.example).
+
+on:
+  schedule:
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST endpoint
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://mjmdevbdqhfwmdfebwfv.supabase.co/rest/v1/pieces?select=id&limit=1" \
+            -H "apikey: ${{ env.ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ env.ANON_KEY }}")
+          echo "Response: $code"
+          if [ "$code" != "200" ]; then
+            echo "Unexpected status code from Supabase"
+            exit 1
+          fi
+        env:
+          ANON_KEY: sb_publishable_N9fmrsBCSAT7L2cwTEI3cQ_pzpp2UrH
