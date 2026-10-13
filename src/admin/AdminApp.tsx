@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useSession } from '../lib/useSession'
 import { supabase } from '../lib/supabase'
 import { AdminLogin } from './AdminLogin'
+import { SetPassword } from './SetPassword'
 import { AdminLayout } from './AdminLayout'
 import { PieceList } from './PieceList'
 import { PieceEdit } from './PieceEdit'
@@ -42,6 +43,7 @@ export function AdminApp() {
     <div className="admin">
       <Routes>
         <Route path="login" element={<AdminLogin />} />
+        <Route path="set-password" element={<SetPassword />} />
         <Route element={<RequireAuth />}>
           <Route element={<AdminLayout />}>
             <Route index element={<PieceList />} />
