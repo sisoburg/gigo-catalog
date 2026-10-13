@@ -74,6 +74,7 @@
   scroll-snap-align: center;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  border: var(--image-stroke);
   background: var(--color-bg-raised);
   display: flex;
   align-items: center;

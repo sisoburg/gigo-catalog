@@ -5,11 +5,15 @@ import {
   addFilmstripItem,
   removeFilmstripItem,
   reorderFilmstripItems,
+  updateFilmstripItem,
   publicUrl,
   type FilmstripItemWithMedia,
   type BrowsableMedia,
 } from './adminData'
 
+
+/** The scroll gets slow and heavy past this many images, so only this many can be on at once. */
+const MAX_SHOWN = 15
 
 export function WornSettings() {
   const [items, setItems] = useState<FilmstripItemWithMedia[] | null>(null)
@@ -46,12 +50,28 @@ export function WornSettings() {
   async function handleAdd(mediaId: string) {
     setAddingId(mediaId)
     try {
-      await addFilmstripItem(mediaId, 'tall', 'base') // size/layer are unused now; the site styles each image itself
+      // size/layer are unused now (the site styles each image itself). A new image starts hidden once 15 are already on.
+      await addFilmstripItem(mediaId, 'tall', 'base', shownCount < MAX_SHOWN)
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to add')
     } finally {
       setAddingId(null)
+    }
+  }
+
+  async function handleToggle(id: string, visible: boolean) {
+    if (visible && shownCount >= MAX_SHOWN) {
+      setError(`${MAX_SHOWN} images are already shown. Turn one off first.`)
+      return
+    }
+    setError(null)
+    setItems((prev) => prev && prev.map((i) => (i.id === id ? { ...i, is_visible: visible } : i)))
+    try {
+      await updateFilmstripItem(id, { is_visible: visible })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to update')
+      load()
     }
   }
 
@@ -111,6 +131,7 @@ export function WornSettings() {
     [],
   )
 
+  const shownCount = (items ?? []).filter((i) => i.is_visible).length
   const selectedMediaIds = new Set((items ?? []).map((i) => i.media_id))
 
   return (
@@ -122,7 +143,11 @@ export function WornSettings() {
         </button>
       </div>
       <p className="helpText">
-        Pick the images for the homepage "WORN" scroll — about 8–10 of your best shots (photos or videos), in the order you want. The site decides how each one looks and moves. Drag to reorder. Leave this empty to let the site auto-pick.
+        Pick the images for the homepage "WORN" scroll — up to 15 can be shown at once. Use the switch on each row to show or hide it (hidden ones stay in the list so you can bring them back). The site decides how each image looks and moves. Drag to reorder. If nothing is shown, the site auto-picks.
+      </p>
+
+      <p className="helpText" style={{ fontWeight: 600 }}>
+        {shownCount} / {MAX_SHOWN} shown on the site{shownCount >= MAX_SHOWN ? " — turn one off to show another" : ""}
       </p>
 
       {error && <div className="alert error">{error}</div>}
@@ -134,7 +159,7 @@ export function WornSettings() {
       ) : (
         <div ref={containerRef}>
           {items.map((item) => (
-            <div key={item.id} data-row-id={item.id} className={draggingId === item.id ? 'pieceRow dragging' : 'pieceRow'}>
+            <div key={item.id} data-row-id={item.id} className={draggingId === item.id ? 'pieceRow dragging' : 'pieceRow'} style={item.is_visible ? undefined : { opacity: 0.5 }}>
               <span className="grip" onPointerDown={onGripPointerDown(item.id)} title="Drag to reorder">
                 ⠿
               </span>
@@ -154,6 +179,15 @@ export function WornSettings() {
                 <div className="meta">{item.media.kind === 'video' ? 'Video' : 'Photo'}</div>
               </div>
               <div className="actions" style={{ flexWrap: 'wrap' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={item.is_visible}
+                    disabled={!item.is_visible && shownCount >= MAX_SHOWN}
+                    onChange={(e) => handleToggle(item.id, e.target.checked)}
+                  />
+                  {item.is_visible ? 'Shown' : 'Hidden'}
+                </label>
                 <button className="btn danger small" type="button" onClick={() => handleRemove(item.id)}>
                   Remove
                 </button>

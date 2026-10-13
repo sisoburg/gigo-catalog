@@ -22,6 +22,7 @@
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--color-bg-raised);
+  border: var(--image-stroke);
   cursor: pointer;
   /* Long-press cycles photos: suppress the browser's own press feedback
      (blue tap highlight, text/image selection, callout menu) over the photo. */

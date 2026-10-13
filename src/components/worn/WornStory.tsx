@@ -137,7 +137,7 @@ export function WornStory({ pieces }: { pieces: Piece[] }) {
       </section>
 
       {tiles && (
-        <section ref={sectionRef} className={styles.zoom} aria-label={he ? 'האוסף' : 'The family of pieces'}>
+        <section ref={sectionRef} className={styles.zoom} aria-label={he ? 'הקולקציה' : 'The family of pieces'}>
           <div ref={gridRef} className={styles.grid}>
             {tiles.map((tile, i) => (
               <Link key={`${tile.slug}-${i}`} to={`/piece/${tile.slug}`} className={i === HERO_CELL ? `${styles.cell} ${styles.heroCell}` : styles.cell}>
