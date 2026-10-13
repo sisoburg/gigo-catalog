@@ -301,6 +301,13 @@
   background: var(--a-bg);
   touch-action: pan-y;
 }
+.mediaItem.heroItem {
+  aspect-ratio: 16 / 9;
+}
+.mediaItem.heroItem.active {
+  border-color: var(--a-accent);
+  border-width: 2px;
+}
 .mediaItem.dragging {
   opacity: 0.5;
 }

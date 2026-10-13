@@ -4,7 +4,10 @@
   gap: 0.4em;
   font-size: 0.8rem;
   letter-spacing: 0.06em;
-  color: var(--color-grey);
+  /* The header floats over both light and dark sections as the page scrolls
+     underneath it, so neither a dark nor a light fixed color stays legible
+     everywhere — a single mid-grey keeps reasonable contrast on both. */
+  color: #9a9a9a;
 }
 
 .sep {
@@ -12,5 +15,5 @@
 }
 
 .active {
-  color: var(--color-fg);
+  font-weight: 700;
 }

@@ -46,6 +46,24 @@ export type Database = {
           },
         ]
       }
+      hero_candidates: {
+        Row: {
+          created_at: string
+          id: string
+          path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string
+        }
+        Relationships: []
+      }
       media: {
         Row: {
           alt_en: string

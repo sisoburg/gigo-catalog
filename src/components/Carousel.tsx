@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Piece } from '../data/types'
@@ -13,14 +13,32 @@ interface CarouselProps {
 }
 
 const DRAG_CLICK_THRESHOLD = 6
+const SETTLE_DELAY_MS = 150
+
+type TrackItem = { kind: 'cap' } | { kind: 'piece'; piece: Piece; realIndex: number }
 
 export function Carousel({ pieces }: CarouselProps) {
   const { dir, locale } = useLanguage()
   const trackRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
-  const activeIndexRef = useRef(activeIndex)
-  activeIndexRef.current = activeIndex
-  const [progress, setProgress] = useState(0)
+  const domIndexRef = useRef(0)
+
+  // Loop illusion: a clone of the last piece (plus a cap) sits before the
+  // real run, and a clone of the first piece (plus a cap) sits after it.
+  // Swiping past either end briefly shows the cap, then the clone — which
+  // is visually identical to the real piece it mirrors — at which point
+  // we silently snap scrollLeft onto the real one so the next swipe keeps
+  // going through the actual list instead of hitting a wall.
+  const trackItems = useMemo<TrackItem[]>(() => {
+    if (pieces.length === 0) return []
+    return [
+      { kind: 'piece', piece: pieces[pieces.length - 1], realIndex: pieces.length - 1 },
+      { kind: 'cap' },
+      ...pieces.map((piece, i) => ({ kind: 'piece' as const, piece, realIndex: i })),
+      { kind: 'cap' },
+      { kind: 'piece', piece: pieces[0], realIndex: 0 },
+    ]
+  }, [pieces])
 
   // --- drag-to-scroll (desktop mouse; touch gets native swipe for free) ---
   // Deliberately NOT using setPointerCapture: capturing the pointer on the
@@ -82,18 +100,19 @@ export function Carousel({ pieces }: CarouselProps) {
     (index: number, instant = false) => {
       const track = trackRef.current
       if (!track) return
-      const clamped = Math.max(0, Math.min(pieces.length - 1, index))
+      const clamped = Math.max(0, Math.min(trackItems.length - 1, index))
       const item = track.children[clamped] as HTMLElement | undefined
       item?.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', inline: 'center', block: 'nearest' })
     },
-    [pieces.length],
+    [trackItems.length],
   )
 
   // Start centered on the middle piece instead of the first — starting at
   // index 0 left the whole left side of the viewport empty until the visitor
-  // scrolled, which read as broken rather than "this is the start."
+  // scrolled, which read as broken rather than "this is the start." (+2 to
+  // skip past the leading clone + cap into the real run.)
   useLayoutEffect(() => {
-    goToIndex(Math.floor(pieces.length / 2), true)
+    goToIndex(Math.floor(pieces.length / 2) + 2, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pieces.length])
 
@@ -102,8 +121,8 @@ export function Carousel({ pieces }: CarouselProps) {
     [dir],
   )
 
-  const goVisualLeft = useCallback(() => goToIndex(activeIndexRef.current + visualStep(false)), [goToIndex, visualStep])
-  const goVisualRight = useCallback(() => goToIndex(activeIndexRef.current + visualStep(true)), [goToIndex, visualStep])
+  const goVisualLeft = useCallback(() => goToIndex(domIndexRef.current + visualStep(false)), [goToIndex, visualStep])
+  const goVisualRight = useCallback(() => goToIndex(domIndexRef.current + visualStep(true)), [goToIndex, visualStep])
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -118,7 +137,8 @@ export function Carousel({ pieces }: CarouselProps) {
     [goVisualLeft, goVisualRight],
   )
 
-  // --- track the centered item and continuous scroll progress ---
+  // --- track the centered item, and silently unwrap onto the real piece
+  // once a swipe/click settles on one of the loop clones. ---
   // Deliberately NOT IntersectionObserver: at desktop widths several cards
   // are simultaneously >60% visible, and an IO callback only reports
   // entries whose ratio just crossed the threshold — not a full re-scan —
@@ -128,14 +148,12 @@ export function Carousel({ pieces }: CarouselProps) {
   // cards fit on screen at once.
   useEffect(() => {
     const track = trackRef.current
-    if (!track) return
+    if (!track || trackItems.length === 0) return
     let frame = 0
+    let settleTimer = 0
 
     const update = () => {
       frame = 0
-      const max = track.scrollWidth - track.clientWidth
-      setProgress(max > 0 ? Math.min(1, Math.max(0, track.scrollLeft / max)) : 0)
-
       const viewportCenter = track.scrollLeft + track.clientWidth / 2
       let closestIndex = 0
       let closestDistance = Infinity
@@ -148,7 +166,20 @@ export function Carousel({ pieces }: CarouselProps) {
           closestIndex = i
         }
       })
-      setActiveIndex(closestIndex)
+      domIndexRef.current = closestIndex
+
+      const entry = trackItems[closestIndex]
+      if (entry?.kind === 'piece') setActiveIndex(entry.realIndex)
+
+      if (settleTimer) window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(() => {
+        // Settled on the leading clone (of the last piece) -> hop onto the
+        // real last piece; settled on the trailing clone (of the first) ->
+        // hop onto the real first piece. Same position visually, so the jump
+        // is invisible, but it resets the scroll range for the next swipe.
+        if (closestIndex === 0) goToIndex(trackItems.length - 3, true)
+        else if (closestIndex === trackItems.length - 1) goToIndex(2, true)
+      }, SETTLE_DELAY_MS)
     }
     const onScroll = () => {
       if (frame) return
@@ -161,10 +192,11 @@ export function Carousel({ pieces }: CarouselProps) {
 
     return () => {
       if (frame) cancelAnimationFrame(frame)
+      if (settleTimer) window.clearTimeout(settleTimer)
       track.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [pieces])
+  }, [trackItems, goToIndex])
 
   // --- staggered entrance as the carousel scrolls into view ---
   // useLayoutEffect so the opacity:0 starting state is set before paint —
@@ -172,6 +204,7 @@ export function Carousel({ pieces }: CarouselProps) {
   useLayoutEffect(() => {
     const track = trackRef.current
     if (!track) return
+    const initialDomIndex = Math.floor(pieces.length / 2) + 2
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion) {
       gsap.set(track.children, { opacity: 1, y: 0, scale: 1 })
@@ -184,9 +217,9 @@ export function Carousel({ pieces }: CarouselProps) {
         {
           // Animate straight to each card's resting state (active vs. dimmed)
           // so clearing props at the end doesn't produce a visible snap.
-          opacity: (i) => (i === activeIndexRef.current ? 1 : 0.55),
+          opacity: (i) => (i === initialDomIndex ? 1 : 0.55),
           y: 0,
-          scale: (i) => (i === activeIndexRef.current ? 1 : 0.94),
+          scale: (i) => (i === initialDomIndex ? 1 : 0.94),
           duration: 0.9,
           ease: 'power2.out',
           stagger: 0.08,
@@ -198,12 +231,6 @@ export function Carousel({ pieces }: CarouselProps) {
     return () => ctx.revert()
   }, [pieces])
 
-  // Physical-left and physical-right arrows always reveal what's off that
-  // side of the screen, regardless of language direction — this is a
-  // navigation control, not text, so it shouldn't mirror with RTL.
-  const atVisualLeftEnd = dir === 'rtl' ? activeIndex === pieces.length - 1 : activeIndex === 0
-  const atVisualRightEnd = dir === 'rtl' ? activeIndex === 0 : activeIndex === pieces.length - 1
-
   return (
     <div className={styles.wrapper}>
       <div className={styles.viewport}>
@@ -211,10 +238,9 @@ export function Carousel({ pieces }: CarouselProps) {
           type="button"
           className={styles.arrowLeft}
           onClick={goVisualLeft}
-          disabled={atVisualLeftEnd}
           aria-label={locale === 'he' ? 'הקודם' : 'Previous'}
         >
-          <ArrowIcon />
+          <ArrowIcon flipped />
         </button>
         <div
           ref={trackRef}
@@ -225,40 +251,34 @@ export function Carousel({ pieces }: CarouselProps) {
           role="region"
           aria-roledescription="carousel"
         >
-          {pieces.map((piece, index) => (
-            <PieceCard
-              key={piece.slug}
-              piece={piece}
-              index={index}
-              active={index === activeIndex}
-              onFocusCard={() => goToIndex(index)}
-            />
-          ))}
+          {trackItems.map((entry, domIndex) =>
+            entry.kind === 'cap' ? (
+              <div key={`cap-${domIndex}`} className={styles.cap} aria-hidden="true" />
+            ) : (
+              <PieceCard
+                key={`${entry.piece.slug}-${domIndex}`}
+                piece={entry.piece}
+                index={entry.realIndex}
+                active={entry.realIndex === activeIndex}
+                onFocusCard={() => goToIndex(domIndex)}
+              />
+            ),
+          )}
         </div>
         <button
           type="button"
           className={styles.arrowRight}
           onClick={goVisualRight}
-          disabled={atVisualRightEnd}
           aria-label={locale === 'he' ? 'הבא' : 'Next'}
         >
-          <ArrowIcon flipped />
+          <ArrowIcon />
         </button>
       </div>
-      <div className={styles.progressRow}>
-        <div className={styles.progressTrack} aria-hidden="true">
-          <div
-            className={styles.progressFill}
-            style={{ transform: `scaleX(${Math.max(0.04, progress)})`, transformOrigin: dir === 'rtl' ? 'right' : 'left' }}
-          />
-        </div>
-        <span className={styles.progressCount}>
-          {activeIndex + 1} / {pieces.length}
-        </span>
+      <div className={styles.dots} aria-hidden="true">
+        {pieces.map((_, i) => (
+          <span key={i} className={i === activeIndex ? `${styles.dot} ${styles.dotActive}` : styles.dot} />
+        ))}
       </div>
-      <p className={styles.hint}>
-        {locale === 'he' ? 'גררו, החליקו, או השתמשו בחצים לעיון — לחיצה על פריט תמקד אותו' : 'Drag, swipe, or use the arrows to browse — click a piece to bring it into focus'}
-      </p>
     </div>
   )
 }

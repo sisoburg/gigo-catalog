@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { PieceMedia } from '../data/types'
 import { useLanguage } from '../i18n/LanguageContext'
 import styles from './Gallery.module.css'
@@ -10,12 +10,35 @@ interface GalleryProps {
 }
 
 const DRAG_CLICK_THRESHOLD = 6
+const SETTLE_DELAY_MS = 150
+
+interface TrackItem {
+  item: PieceMedia
+  realIndex: number
+}
 
 export function Gallery({ items, firstImageRef }: GalleryProps) {
   const { locale, dir } = useLanguage()
   const trackRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null)
+  const domIndexRef = useRef(0)
+
+  // Loop illusion: a clone of the last slide sits before the real run, and a
+  // clone of the first sits after it — no visible seam like the main
+  // carousel's cap, since photos (and the zoom interaction) read fine
+  // repeating directly. Swiping past either end lands on a clone that's
+  // visually identical to the real slide it mirrors, at which point we
+  // silently snap scrollLeft onto the real one. See Carousel.tsx for the
+  // same technique with more detail.
+  const trackItems = useMemo<TrackItem[]>(() => {
+    if (items.length === 0) return []
+    return [
+      { item: items[items.length - 1], realIndex: items.length - 1 },
+      ...items.map((item, i) => ({ item, realIndex: i })),
+      { item: items[0], realIndex: 0 },
+    ]
+  }, [items])
 
   const dragState = useRef<{ startX: number; startScrollLeft: number; moved: boolean } | null>(null)
 
@@ -68,20 +91,27 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
   }, [])
 
   const goToIndex = useCallback(
-    (index: number) => {
+    (index: number, instant = false) => {
       const track = trackRef.current
       if (!track) return
-      const clamped = Math.max(0, Math.min(items.length - 1, index))
+      const clamped = Math.max(0, Math.min(trackItems.length - 1, index))
       const item = track.children[clamped] as HTMLElement | undefined
-      item?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+      item?.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', inline: 'center', block: 'nearest' })
     },
-    [items.length],
+    [trackItems.length],
   )
+
+  // Land on the real first slide (domIndex 1, past the leading clone) instead
+  // of wherever the browser's default scroll position would be.
+  useLayoutEffect(() => {
+    goToIndex(1, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length])
 
   // Physical-left/right, not mirrored by language direction — see Carousel.tsx.
   const visualStep = useCallback((towardVisualRight: boolean) => (dir === 'rtl' ? (towardVisualRight ? -1 : 1) : towardVisualRight ? 1 : -1), [dir])
-  const goVisualLeft = useCallback(() => goToIndex(activeIndex + visualStep(false)), [goToIndex, visualStep, activeIndex])
-  const goVisualRight = useCallback(() => goToIndex(activeIndex + visualStep(true)), [goToIndex, visualStep, activeIndex])
+  const goVisualLeft = useCallback(() => goToIndex(domIndexRef.current + visualStep(false)), [goToIndex, visualStep])
+  const goVisualRight = useCallback(() => goToIndex(domIndexRef.current + visualStep(true)), [goToIndex, visualStep])
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -103,8 +133,9 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
   // threshold, not a full re-scan, which misidentifies the active slide.
   useEffect(() => {
     const track = trackRef.current
-    if (!track) return
+    if (!track || trackItems.length === 0) return
     let frame = 0
+    let settleTimer = 0
 
     const update = () => {
       frame = 0
@@ -120,7 +151,17 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
           closestIndex = i
         }
       })
-      setActiveIndex(closestIndex)
+      domIndexRef.current = closestIndex
+      setActiveIndex(trackItems[closestIndex].realIndex)
+
+      if (settleTimer) window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(() => {
+        // Settled on the leading clone -> hop onto the real last slide;
+        // settled on the trailing clone -> hop onto the real first slide.
+        // Same position visually, so the jump is invisible.
+        if (closestIndex === 0) goToIndex(trackItems.length - 2, true)
+        else if (closestIndex === trackItems.length - 1) goToIndex(1, true)
+      }, SETTLE_DELAY_MS)
     }
     const onScroll = () => {
       if (frame) return
@@ -133,13 +174,11 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
 
     return () => {
       if (frame) cancelAnimationFrame(frame)
+      if (settleTimer) window.clearTimeout(settleTimer)
       track.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [items])
-
-  const atVisualLeftEnd = dir === 'rtl' ? activeIndex === items.length - 1 : activeIndex === 0
-  const atVisualRightEnd = dir === 'rtl' ? activeIndex === 0 : activeIndex === items.length - 1
+  }, [trackItems, goToIndex])
 
   return (
     <div className={styles.wrapper}>
@@ -149,10 +188,9 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
             type="button"
             className={styles.arrowLeft}
             onClick={goVisualLeft}
-            disabled={atVisualLeftEnd}
             aria-label={locale === 'he' ? 'הקודם' : 'Previous'}
           >
-            <ArrowIcon />
+            <ArrowIcon flipped />
           </button>
         )}
         <div
@@ -164,32 +202,35 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
           role="region"
           aria-roledescription="carousel"
         >
-          {items.map((item, index) => (
-            <div key={index} className={styles.slide} data-gallery-item={index}>
-              {item.kind === 'photo' ? (
-                <img
-                  ref={index === 0 ? firstImageRef : undefined}
-                  className={zoomedIndex === index ? `${styles.media} ${styles.zoomed}` : styles.media}
-                  src={item.large}
-                  alt={item.alt[locale]}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  onClick={() => setZoomedIndex((z) => (z === index ? null : index))}
-                />
-              ) : (
-                <GalleryVideo item={item} active={index === activeIndex} alt={item.alt[locale]} />
-              )}
-            </div>
-          ))}
+          {trackItems.map((entry, domIndex) => {
+            const { item, realIndex } = entry
+            const isRealFirst = domIndex === 1
+            return (
+              <div key={`${realIndex}-${domIndex}`} className={styles.slide} data-gallery-item={realIndex}>
+                {item.kind === 'photo' ? (
+                  <img
+                    ref={isRealFirst ? firstImageRef : undefined}
+                    className={zoomedIndex === realIndex ? `${styles.media} ${styles.zoomed}` : styles.media}
+                    src={item.large}
+                    alt={item.alt[locale]}
+                    loading={isRealFirst ? 'eager' : 'lazy'}
+                    onClick={() => setZoomedIndex((z) => (z === realIndex ? null : realIndex))}
+                  />
+                ) : (
+                  <GalleryVideo item={item} active={realIndex === activeIndex} alt={item.alt[locale]} />
+                )}
+              </div>
+            )
+          })}
         </div>
         {items.length > 1 && (
           <button
             type="button"
             className={styles.arrowRight}
             onClick={goVisualRight}
-            disabled={atVisualRightEnd}
             aria-label={locale === 'he' ? 'הבא' : 'Next'}
           >
-            <ArrowIcon flipped />
+            <ArrowIcon />
           </button>
         )}
       </div>
@@ -203,7 +244,7 @@ export function Gallery({ items, firstImageRef }: GalleryProps) {
               aria-selected={index === activeIndex}
               aria-label={`${index + 1}`}
               className={index === activeIndex ? `${styles.thumb} ${styles.thumbActive}` : styles.thumb}
-              onClick={() => goToIndex(index)}
+              onClick={() => goToIndex(index + 1)}
             >
               <img
                 src={item.kind === 'photo' ? item.thumbnail : item.poster}

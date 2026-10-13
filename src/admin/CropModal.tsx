@@ -4,11 +4,12 @@ import { PIECE_ASPECT } from './imagePipeline'
 
 interface CropModalProps {
   imageSrc: string
+  aspect?: number
   onCancel: () => void
   onConfirm: (crop: Area) => void
 }
 
-export function CropModal({ imageSrc, onCancel, onConfirm }: CropModalProps) {
+export function CropModal({ imageSrc, aspect = PIECE_ASPECT, onCancel, onConfirm }: CropModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedPixels, setCroppedPixels] = useState<Area | null>(null)
@@ -24,7 +25,7 @@ export function CropModal({ imageSrc, onCancel, onConfirm }: CropModalProps) {
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={PIECE_ASPECT}
+          aspect={aspect}
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}

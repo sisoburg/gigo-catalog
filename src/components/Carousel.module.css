@@ -17,7 +17,10 @@
   padding-block: var(--space-2);
   cursor: grab;
   scrollbar-width: none;
-  touch-action: pan-y;
+  /* Allow native touch panning on this axis — "pan-y" was blocking the
+     browser from ever treating a touch drag as horizontal scroll, so swipe
+     only worked via mouse drag or the arrow buttons. */
+  touch-action: pan-x;
   outline: none;
 }
 
@@ -51,8 +54,8 @@
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.arrowLeft:hover:not(:disabled),
-.arrowRight:hover:not(:disabled) {
+.arrowLeft:hover,
+.arrowRight:hover {
   opacity: 1;
   transform: translateY(-50%) scale(1.08);
 }
@@ -65,54 +68,47 @@
   right: var(--space-2);
 }
 
-.arrowLeft:disabled,
-.arrowRight:disabled {
-  opacity: 0;
-  pointer-events: none;
+/* Sized and shaped like a piece card's image frame — an "empty piece" slot
+   marking the wrap-around point, using the same placeholder tone as a
+   photo that hasn't loaded yet. flex/align-self: center so it doesn't
+   stretch to the card's full height (image + caption) like a real card. */
+.cap {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 74vw;
+  aspect-ratio: 4 / 5;
+  background: var(--color-bg-raised);
+  scroll-snap-align: center;
 }
 
-.progressRow {
+.dots {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: 6px;
   padding-inline: var(--space-4);
 }
 
-.progressTrack {
-  width: min(220px, 40vw);
+.dot {
+  width: 4px;
   height: 2px;
+  border-radius: 1px;
   background: var(--color-line);
-  overflow: hidden;
+  transition: background 0.25s ease, width 0.25s ease;
 }
 
-.progressFill {
-  width: 100%;
-  height: 100%;
+.dotActive {
+  width: 12px;
   background: var(--color-fg);
-  transition: transform 0.15s linear;
-}
-
-.progressCount {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  color: var(--color-grey);
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.hint {
-  text-align: center;
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  color: var(--color-grey);
-  padding-inline: var(--space-4);
 }
 
 @media (min-width: 640px) {
   .track {
     padding-inline: max(var(--space-5), calc(50% - 20vw));
+  }
+  .cap {
+    width: 40vw;
   }
 }
 
@@ -126,6 +122,10 @@
   .arrowRight {
     right: var(--space-4);
   }
+  .cap {
+    width: 24vw;
+    max-width: 320px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -133,7 +133,7 @@
   .arrowRight {
     transition: none;
   }
-  .progressFill {
+  .dot {
     transition: none;
   }
 }

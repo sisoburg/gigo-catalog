@@ -27,8 +27,8 @@
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.arrowLeft:hover:not(:disabled),
-.arrowRight:hover:not(:disabled) {
+.arrowLeft:hover,
+.arrowRight:hover {
   opacity: 1;
   transform: translateY(-50%) scale(1.08);
 }
@@ -41,18 +41,15 @@
   right: var(--space-2);
 }
 
-.arrowLeft:disabled,
-.arrowRight:disabled {
-  opacity: 0;
-  pointer-events: none;
-}
-
 .track {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  touch-action: pan-y;
+  /* Allow native touch panning on this axis — "pan-y" was blocking the
+     browser from ever treating a touch drag as horizontal scroll, so swipe
+     only worked via mouse drag or the arrow buttons. */
+  touch-action: pan-x;
   outline: none;
   cursor: grab;
 }

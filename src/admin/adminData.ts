@@ -5,6 +5,7 @@ import type { Tables, TablesInsert } from '../lib/database.types'
 export type PieceRow = Tables<'pieces'>
 export type MediaRow = Tables<'media'>
 export type FilmstripItemRow = Tables<'filmstrip_items'>
+export type HeroCandidateRow = Tables<'hero_candidates'>
 
 export interface FilmstripItemWithMedia extends FilmstripItemRow {
   media: Pick<MediaRow, 'id' | 'kind' | 'path_thumbnail' | 'path_poster'> & { piece_name: string }
@@ -215,6 +216,25 @@ export async function updateFilmstripItem(id: string, patch: { size?: string; la
 
 export async function reorderFilmstripItems(orderedIds: string[]): Promise<void> {
   await Promise.all(orderedIds.map((id, index) => supabase.from('filmstrip_items').update({ sort_order: index }).eq('id', id)))
+}
+
+// --- Homepage hero candidates ---
+
+export async function fetchHeroCandidates(): Promise<HeroCandidateRow[]> {
+  const { data, error } = await supabase.from('hero_candidates').select('*').order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function insertHeroCandidate(path: string): Promise<HeroCandidateRow> {
+  const { data, error } = await supabase.from('hero_candidates').insert({ path }).select('*').single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteHeroCandidate(id: string): Promise<void> {
+  const { error } = await supabase.from('hero_candidates').delete().eq('id', id)
+  if (error) throw error
 }
 
 export { publicUrl }

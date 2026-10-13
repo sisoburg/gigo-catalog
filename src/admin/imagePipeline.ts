@@ -3,6 +3,8 @@
 // produced server-side: thumbnail/medium/large WebP.
 
 export const PIECE_ASPECT = 4 / 5
+export const HERO_ASPECT = 16 / 9
+export const HERO_MAX_WIDTH = 2400
 
 export const SIZES = { thumbnail: 480, medium: 900, large: 1600 } as const
 
@@ -91,6 +93,12 @@ export interface ProcessedPhoto {
   thumbnail: Blob
   medium: Blob
   large: Blob
+}
+
+/** The hero is shown full-bleed at any viewport size, so unlike piece photos
+ *  it only needs one size — just the crop, capped to HERO_MAX_WIDTH. */
+export async function processHeroPhoto(image: HTMLImageElement, crop: CropPixels): Promise<Blob> {
+  return canvasToWebp(cropToCanvas(image, crop, HERO_MAX_WIDTH), 0.85)
 }
 
 export async function processPhoto(image: HTMLImageElement, crop: CropPixels): Promise<ProcessedPhoto> {
