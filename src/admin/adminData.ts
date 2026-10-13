@@ -197,10 +197,10 @@ export async function fetchAllMediaForBrowsing(): Promise<BrowsableMedia[]> {
     }))
 }
 
-export async function addFilmstripItem(mediaId: string, size: string, layer: string): Promise<void> {
+export async function addFilmstripItem(mediaId: string, size: string, layer: string, isVisible = true): Promise<void> {
   const { data: existing } = await supabase.from('filmstrip_items').select('sort_order').order('sort_order', { ascending: false }).limit(1)
   const nextOrder = (existing?.[0]?.sort_order ?? -1) + 1
-  const { error } = await supabase.from('filmstrip_items').insert({ media_id: mediaId, size, layer, sort_order: nextOrder })
+  const { error } = await supabase.from('filmstrip_items').insert({ media_id: mediaId, size, layer, sort_order: nextOrder, is_visible: isVisible })
   if (error) throw error
 }
 
@@ -209,7 +209,7 @@ export async function removeFilmstripItem(id: string): Promise<void> {
   if (error) throw error
 }
 
-export async function updateFilmstripItem(id: string, patch: { size?: string; layer?: string }): Promise<void> {
+export async function updateFilmstripItem(id: string, patch: { size?: string; layer?: string; is_visible?: boolean }): Promise<void> {
   const { error } = await supabase.from('filmstrip_items').update(patch).eq('id', id)
   if (error) throw error
 }

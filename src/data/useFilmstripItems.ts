@@ -14,7 +14,7 @@ export function useFilmstripItems(): { items: PieceMedia[] | null } {
     let cancelled = false
 
     async function load() {
-      const { data, error } = await supabase.from('filmstrip_items').select('media(*)').order('sort_order')
+      const { data, error } = await supabase.from('filmstrip_items').select('media(*)').eq('is_visible', true).order('sort_order')
       if (cancelled) return
       if (error || !data) {
         setItems([])

@@ -45,7 +45,7 @@ export function Home() {
   if (error) {
     return (
       <main className={styles.state}>
-        <p>{locale === 'he' ? 'שגיאה בטעינת האוסף. נסו לרענן.' : 'Something went wrong loading the collection. Try refreshing.'}</p>
+        <p>{locale === 'he' ? 'שגיאה בטעינת הקולקציה. נסו לרענן.' : 'Something went wrong loading the collection. Try refreshing.'}</p>
       </main>
     )
   }
@@ -53,7 +53,7 @@ export function Home() {
   if (pieces.length === 0) {
     return (
       <main className={styles.state}>
-        <p>{locale === 'he' ? 'האוסף יעודכן בקרוב.' : 'The collection is being updated — check back soon.'}</p>
+        <p>{locale === 'he' ? 'הקולקציה תתעדכן בקרוב.' : 'The collection is being updated — check back soon.'}</p>
       </main>
     )
   }
@@ -63,7 +63,7 @@ export function Home() {
       {hero && <Hero media={hero} />}
       <section className={styles.collection}>
         <div ref={headingRef} className={styles.heading}>
-          <h2>{locale === 'he' ? 'האוסף' : 'The Collection'}</h2>
+          <h2>{locale === 'he' ? 'הקולקציה' : 'The Collection'}</h2>
         </div>
         <Carousel pieces={pieces} />
       </section>

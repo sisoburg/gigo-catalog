@@ -5,6 +5,7 @@
   --color-fg: #16140f;
   --color-fg-muted: #4a463e;
   --color-grey: #8d887c;
+  --image-stroke: 1px solid var(--color-fg);
   --color-line: #d9d4c8;
 
   --space-1: 0.25rem;

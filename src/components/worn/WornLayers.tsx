@@ -8,7 +8,7 @@ import styles from './WornLayers.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const MAX_ITEMS = 8
+const MAX_ITEMS = 15
 
 type SceneKind = 'stack' | 'drop' | 'pair' | 'reveal'
 const SCENE_ORDER: SceneKind[] = ['stack', 'drop', 'pair', 'reveal']

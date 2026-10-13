@@ -92,7 +92,7 @@ export function PieceDetail() {
       <main className={styles.main}>
         <p>{locale === 'he' ? 'שגיאה בטעינת הפריט. נסו לרענן.' : 'Something went wrong loading this piece. Try refreshing.'}</p>
         <Link to="/" className={styles.back}>
-          {locale === 'he' ? '← חזרה לאוסף' : '← Back to collection'}
+          {locale === 'he' ? '← חזרה לקולקציה' : '← Back to collection'}
         </Link>
       </main>
     )
@@ -103,7 +103,7 @@ export function PieceDetail() {
       <main className={styles.main}>
         <p>{locale === 'he' ? 'הפריט לא נמצא' : 'Piece not found'}</p>
         <Link to="/" className={styles.back}>
-          {locale === 'he' ? '← חזרה לאוסף' : '← Back to collection'}
+          {locale === 'he' ? '← חזרה לקולקציה' : '← Back to collection'}
         </Link>
       </main>
     )
@@ -119,7 +119,7 @@ export function PieceDetail() {
   return (
     <main className={styles.main}>
       <Link to="/" className={styles.back}>
-        {locale === 'he' ? '← חזרה לאוסף' : '← Back to collection'}
+        {locale === 'he' ? '← חזרה לקולקציה' : '← Back to collection'}
       </Link>
       <div className={overlayVisible ? `${styles.galleryWrap} ${styles.galleryHidden}` : styles.galleryWrap}>
         <Gallery items={piece.gallery} firstImageRef={heroImgRef} />
