@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { BASE_PATH } from './basePath'
 import { SmoothScroll } from './components/SmoothScroll'
 import { PublicApp } from './PublicApp'
+import { AuthLinkRedirect } from './components/AuthLinkRedirect'
 
 // Code-split: the admin bundle (react-easy-crop, all admin UI/logic) would
 // otherwise ship to every public visitor even though they never see it.
@@ -12,6 +13,7 @@ export function App() {
   return (
     <BrowserRouter basename={BASE_PATH}>
       <SmoothScroll />
+      <AuthLinkRedirect />
       <Routes>
         <Route
           path="/admin/*"

@@ -4,13 +4,15 @@ import { supabase } from '../lib/supabase'
 import { useSession } from '../lib/useSession'
 
 export function AdminLogin() {
-  const { session, loading: sessionLoading } = useSession()
+  const { session, isAdmin, loading: sessionLoading } = useSession()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (!sessionLoading && session) return <Navigate to="/admin" replace />
+  // Only admins are sent on to /admin; a signed-in non-admin lands there too
+  // and gets the "no admin access" screen with a sign-out button.
+  if (!sessionLoading && session && isAdmin !== undefined) return <Navigate to="/admin" replace />
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
