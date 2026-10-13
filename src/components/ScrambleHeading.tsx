@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { Fragment, useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -44,12 +44,21 @@ export function ScrambleHeading({ text, className }: ScrambleHeadingProps) {
     return () => ctx.revert()
   }, [text])
 
+  // Words stay unbreakable: per-letter inline-blocks would otherwise let a
+  // line wrap in the middle of a word.
   return (
     <h2 ref={ref} className={className} aria-label={text}>
-      {Array.from(text).map((char, i) => (
-        <span key={i} data-letter style={{ display: 'inline-block' }} aria-hidden="true">
-          {char === ' ' ? ' ' : char}
-        </span>
+      {text.split(' ').map((word, w, words) => (
+        <Fragment key={w}>
+          <span style={{ display: 'inline-block', whiteSpace: 'nowrap' }} aria-hidden="true">
+            {Array.from(word).map((char, i) => (
+              <span key={i} data-letter style={{ display: 'inline-block' }}>
+                {char}
+              </span>
+            ))}
+          </span>
+          {w < words.length - 1 ? ' ' : null}
+        </Fragment>
       ))}
     </h2>
   )

@@ -4,15 +4,7 @@ import noamPhoto from '../assets/about/noam.jpg'
 import ayalaPhoto from '../assets/about/ayala.jpg'
 import styles from './Footer.module.css'
 
-const WHATSAPP_NUMBERS = {
-  noam: '972545555656',
-  ayala: '972528888981',
-}
-
-function whatsappHref(number: string, locale: 'en' | 'he') {
-  const message = locale === 'he' ? 'היי! מתעניינ/ת בתכשיט מ-GIGO' : "Hi! I'm interested in a piece from Gigo"
-  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`
-}
+import { WHATSAPP_NUMBERS, whatsappHref } from '../lib/contact'
 
 export function Footer() {
   const { locale } = useLanguage()
@@ -21,7 +13,7 @@ export function Footer() {
   return (
     <footer className={styles.footer}>
       <div ref={ref} className={styles.inner}>
-        <div className={styles.about}>
+        <div id="about" className={styles.about}>
           <span className={styles.eyebrow}>{locale === 'he' ? 'אודות' : 'About'}</span>
 
           <figure className={`${styles.person} ${styles.personNoam}`}>

@@ -4,15 +4,12 @@ import {
   fetchAllMediaForBrowsing,
   addFilmstripItem,
   removeFilmstripItem,
-  updateFilmstripItem,
   reorderFilmstripItems,
   publicUrl,
   type FilmstripItemWithMedia,
   type BrowsableMedia,
 } from './adminData'
 
-const SIZE_OPTIONS = ['tall', 'square', 'wide']
-const LAYER_OPTIONS = ['base', 'float']
 
 export function WornSettings() {
   const [items, setItems] = useState<FilmstripItemWithMedia[] | null>(null)
@@ -49,7 +46,7 @@ export function WornSettings() {
   async function handleAdd(mediaId: string) {
     setAddingId(mediaId)
     try {
-      await addFilmstripItem(mediaId, 'tall', 'base')
+      await addFilmstripItem(mediaId, 'tall', 'base') // size/layer are unused now; the site styles each image itself
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to add')
@@ -64,26 +61,6 @@ export function WornSettings() {
       await removeFilmstripItem(id)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to remove')
-      load()
-    }
-  }
-
-  async function handleSizeChange(id: string, size: string) {
-    setItems((prev) => prev && prev.map((i) => (i.id === id ? { ...i, size } : i)))
-    try {
-      await updateFilmstripItem(id, { size })
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update')
-      load()
-    }
-  }
-
-  async function handleLayerChange(id: string, layer: string) {
-    setItems((prev) => prev && prev.map((i) => (i.id === id ? { ...i, layer } : i)))
-    try {
-      await updateFilmstripItem(id, { layer })
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update')
       load()
     }
   }
@@ -145,8 +122,7 @@ export function WornSettings() {
         </button>
       </div>
       <p className="helpText">
-        Controls exactly what shows in the homepage "WORN" filmstrip, and in what order. Drag to reorder. Leave this list empty to let
-        the site auto-pick a couple of photos per piece instead.
+        Pick the images for the homepage "WORN" scroll — about 8–10 of your best shots (photos or videos), in the order you want. The site decides how each one looks and moves. Drag to reorder. Leave this empty to let the site auto-pick.
       </p>
 
       {error && <div className="alert error">{error}</div>}
@@ -178,20 +154,6 @@ export function WornSettings() {
                 <div className="meta">{item.media.kind === 'video' ? 'Video' : 'Photo'}</div>
               </div>
               <div className="actions" style={{ flexWrap: 'wrap' }}>
-                <select value={item.size} onChange={(e) => handleSizeChange(item.id, e.target.value)} style={{ width: 'auto' }}>
-                  {SIZE_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <select value={item.layer} onChange={(e) => handleLayerChange(item.id, e.target.value)} style={{ width: 'auto' }}>
-                  {LAYER_OPTIONS.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
                 <button className="btn danger small" type="button" onClick={() => handleRemove(item.id)}>
                   Remove
                 </button>
