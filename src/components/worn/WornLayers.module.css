@@ -1,0 +1,190 @@
+.section {
+  --tone-0: #d8b49c;
+  --tone-1: #b7c2a4;
+  --tone-2: #e4c3bd;
+  --tone-3: #c4b4d2;
+
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--color-fg);
+}
+
+/* Always laid out left-to-right: the strip's motion is a visual effect, not
+   reading order, so Hebrew gets the same direction instead of a mirrored one. */
+.track {
+  display: flex;
+  direction: ltr;
+  width: max-content;
+  height: 100%;
+}
+
+.scene {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+.frame {
+  position: absolute;
+  overflow: hidden;
+  background: var(--color-bg-raised);
+}
+
+.frame img,
+.frame video,
+.revealImg img,
+.revealImg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.panel {
+  position: absolute;
+  background: var(--tone-0);
+}
+
+.scene[data-tone='1'] .panel,
+.scene[data-tone='1'] .cover {
+  background: var(--tone-1);
+}
+.scene[data-tone='2'] .panel,
+.scene[data-tone='2'] .cover {
+  background: var(--tone-2);
+}
+.scene[data-tone='3'] .panel,
+.scene[data-tone='3'] .cover {
+  background: var(--tone-3);
+}
+
+/* --- title --- */
+.title {
+  width: 90vw;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--space-4);
+}
+
+.word {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(3.4rem, 13vw, 9.5rem);
+  line-height: 0.95;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(247, 244, 239, 0.7);
+  text-wrap: balance;
+}
+
+/* --- stack: a lagging back photo, a colour panel, a fast front photo --- */
+.stack {
+  width: 112vw;
+}
+.stack .panel {
+  left: 30%;
+  top: 28svh;
+  width: 56%;
+  height: 56svh;
+}
+.stackBack {
+  left: 4%;
+  top: 14svh;
+  height: min(68svh, 118vw);
+  aspect-ratio: 4 / 5;
+}
+.stackFront {
+  left: 48%;
+  top: 50svh;
+  height: min(38svh, 62vw);
+  aspect-ratio: 4 / 5;
+  border: 4px solid var(--color-bg);
+  box-shadow: 0 1.4rem 2.6rem rgba(0, 0, 0, 0.45);
+}
+
+/* --- drop: one photo falling in over a colour slab --- */
+.drop {
+  width: 100vw;
+}
+.drop .panel {
+  left: 10%;
+  top: 30svh;
+  width: 66%;
+  height: 50svh;
+}
+.dropImg {
+  left: 22%;
+  top: 16svh;
+  height: min(64svh, 112vw);
+  aspect-ratio: 4 / 5;
+  box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.4);
+}
+
+/* --- pair: two photos sliding past each other vertically --- */
+.pair {
+  width: 112vw;
+}
+.pairA {
+  left: 4%;
+  top: 14svh;
+  height: min(50svh, 92vw);
+  aspect-ratio: 4 / 5;
+}
+.pairB {
+  left: 46%;
+  top: 36svh;
+  height: min(46svh, 84vw);
+  aspect-ratio: 4 / 5;
+}
+
+/* --- reveal: a colour panel wipes off the photo --- */
+.reveal {
+  width: 100vw;
+}
+.revealFrame {
+  left: 10%;
+  top: 16svh;
+  height: min(66svh, 118vw);
+  aspect-ratio: 4 / 5;
+}
+.revealImg {
+  position: absolute;
+  inset: 0;
+}
+.cover {
+  position: absolute;
+  inset: 0;
+  background: var(--tone-0);
+}
+
+@media (min-width: 860px) {
+  .title {
+    width: 70vw;
+  }
+  .stack {
+    width: 72vw;
+  }
+  .drop {
+    width: 54vw;
+  }
+  .pair {
+    width: 66vw;
+  }
+  .reveal {
+    width: 52vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No pin, no scrub: just a swipeable row so nothing is unreachable. */
+  .section {
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+  .scene {
+    scroll-snap-align: start;
+  }
+  .cover {
+    display: none;
+  }
+}

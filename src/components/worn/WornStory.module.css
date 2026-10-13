@@ -1,0 +1,146 @@
+.story {
+  padding: var(--space-7) var(--space-4);
+  background: var(--color-bg-raised);
+  overflow: hidden;
+}
+
+.storyInner {
+  max-width: 980px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+/* A taped-on snapshot rather than a catalogue shot — the point is that
+   this is somebody's real, slightly blurry family ring. */
+.polaroid {
+  margin: 0;
+  width: min(62vw, 270px);
+  padding: 10px 10px 14px;
+  background: #fff;
+  box-shadow: 0 1rem 2.2rem rgba(22, 20, 15, 0.18);
+  transform: rotate(-3.5deg);
+  flex: 0 0 auto;
+}
+
+.polaroid img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 70%;
+}
+
+.polaroid figcaption {
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--color-grey);
+  letter-spacing: 0.04em;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 34rem;
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 6vw, 3.2rem);
+  line-height: 1.1;
+}
+
+.copy p {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+}
+
+.copy .cue {
+  margin-top: var(--space-2);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: var(--color-grey);
+}
+
+@media (min-width: 860px) {
+  .storyInner {
+    flex-direction: row;
+    gap: var(--space-6);
+    text-align: start;
+  }
+}
+
+/* --- the pinned zoom-out --- */
+.zoom {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--color-fg);
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  will-change: transform;
+}
+
+.cell {
+  position: relative;
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-bg-raised);
+  will-change: transform;
+}
+
+.heroCell {
+  z-index: 2;
+}
+
+.cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.name {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(1.2rem, 3.6vw, 2.4rem);
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
+  background: rgba(22, 20, 15, 0.28);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zoom {
+    height: auto;
+  }
+  .grid {
+    position: static;
+    grid-template-rows: none;
+  }
+  .cell {
+    aspect-ratio: 4 / 5;
+  }
+}

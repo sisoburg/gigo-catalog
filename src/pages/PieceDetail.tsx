@@ -130,7 +130,7 @@ export function PieceDetail() {
         <p className={styles.price}>{formatPrice(piece.price, locale)}</p>
         <p className={styles.description}>{piece.description[locale]}</p>
       </div>
-      <PieceRow title={locale === 'he' ? 'אולי יקסים אתכם גם' : 'You may also like'} pieces={relatedPieces} />
+      <PieceRow title={locale === 'he' ? 'תכשיטים דומים' : 'Similar jewels'} pieces={relatedPieces} />
       <PieceRow title={locale === 'he' ? 'נצפו לאחרונה' : 'Previously viewed'} pieces={recentPieces} />
     </main>
   )

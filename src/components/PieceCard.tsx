@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { Piece } from '../data/types'
 import { useLanguage } from '../i18n/LanguageContext'
@@ -17,6 +17,26 @@ interface PieceCardProps {
 const LONG_PRESS_MS = 280
 const AUTO_CYCLE_MS = 650
 const MOVE_CANCEL_THRESHOLD = 8
+const HINT_MS = 3400
+const HINT_SEEN_KEY = 'gigo-peek-hint-seen'
+
+// The hold-to-browse gesture is invisible, so on touch devices the first
+// peekable card to become active shows a short hint — once per session, and
+// never again after the visitor has actually used the gesture.
+const hintSeen = () => {
+  try {
+    return sessionStorage.getItem(HINT_SEEN_KEY) === '1'
+  } catch {
+    return true
+  }
+}
+const markHintSeen = () => {
+  try {
+    sessionStorage.setItem(HINT_SEEN_KEY, '1')
+  } catch {
+    /* storage unavailable — hint is simply skipped */
+  }
+}
 
 export function PieceCard({ piece, index, active, onFocusCard }: PieceCardProps) {
   const { locale } = useLanguage()
@@ -25,9 +45,19 @@ export function PieceCard({ piece, index, active, onFocusCard }: PieceCardProps)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [previewIndex, setPreviewIndex] = useState(0)
   const [peeking, setPeeking] = useState(false)
+  const [showHint, setShowHint] = useState(false)
 
   const previewPhotos = piece.gallery.filter((m) => m.kind === 'photo').slice(0, 5)
   const canPeek = previewPhotos.length > 1
+
+  useEffect(() => {
+    if (!active || !canPeek || hintSeen()) return
+    if (!window.matchMedia('(hover: none)').matches) return
+    markHintSeen()
+    setShowHint(true)
+    const t = window.setTimeout(() => setShowHint(false), HINT_MS)
+    return () => window.clearTimeout(t)
+  }, [active, canPeek])
 
   const enter = () => {
     const img = imgRef.current
@@ -95,6 +125,7 @@ export function PieceCard({ piece, index, active, onFocusCard }: PieceCardProps)
       pressState.current.startY = e.clientY
       pressState.current.longPressTimer = window.setTimeout(() => {
         setPeeking(true)
+        setShowHint(false)
         let i = 0
         pressState.current.cycleTimer = window.setInterval(() => {
           i = (i + 1) % previewPhotos.length
@@ -138,6 +169,7 @@ export function PieceCard({ piece, index, active, onFocusCard }: PieceCardProps)
         onPointerMove={handleTouchMove}
         onPointerUp={handleTouchEnd}
         onPointerCancel={handleTouchEnd}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {previewPhotos.map((photo, i) => (
           <img
@@ -150,6 +182,11 @@ export function PieceCard({ piece, index, active, onFocusCard }: PieceCardProps)
             loading={index < 2 && i === 0 ? 'eager' : 'lazy'}
           />
         ))}
+        {showHint && (
+          <div className={styles.holdHint} aria-hidden="true">
+            {locale === 'he' ? 'החזיקו לחיצה לדפדוף בתמונות' : 'Press & hold to browse photos'}
+          </div>
+        )}
         {canPeek && (
           <div className={peeking ? `${styles.peekDots} ${styles.peekDotsVisible}` : styles.peekDots} aria-hidden="true">
             {previewPhotos.map((_, i) => (

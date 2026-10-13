@@ -44,19 +44,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
-  color: var(--color-bg);
-  background: var(--color-fg);
-  box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.18);
-  opacity: 0.92;
+  color: var(--color-fg);
+  background: rgba(247, 244, 239, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity: 0.6;
   transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.arrowLeft svg,
+.arrowRight svg {
+  width: 12px;
+  height: auto;
 }
 
 .arrowLeft:hover,
 .arrowRight:hover {
-  opacity: 1;
+  opacity: 0.95;
   transform: translateY(-50%) scale(1.08);
 }
 
@@ -70,15 +77,23 @@
 
 /* Sized and shaped like a piece card's image frame — an "empty piece" slot
    marking the wrap-around point, using the same placeholder tone as a
-   photo that hasn't loaded yet. flex/align-self: center so it doesn't
-   stretch to the card's full height (image + caption) like a real card. */
+   photo that hasn't loaded yet. It stretches to the row height and scales
+   like an inactive card, with the frame pinned to the top, so its frame
+   lines up exactly with the neighbouring cards' image frames. */
 .cap {
   flex: 0 0 auto;
-  align-self: center;
   width: 74vw;
+  scroll-snap-align: center;
+  transform: scale(0.94);
+  opacity: 0.55;
+}
+
+.cap::before {
+  content: '';
+  display: block;
+  width: 100%;
   aspect-ratio: 4 / 5;
   background: var(--color-bg-raised);
-  scroll-snap-align: center;
 }
 
 .dots {
