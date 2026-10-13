@@ -6,16 +6,19 @@ import { useScrollReveal } from '../../hooks/useScrollReveal'
 import { scrollToY } from '../SmoothScroll'
 import { ScrambleHeading } from '../ScrambleHeading'
 import { WHATSAPP_NUMBERS, whatsappHref } from '../../lib/contact'
+import liyaRed from '../../assets/worn/liya-red.jpg'
+import liyaBlue from '../../assets/worn/liya-blue.jpg'
+import liyaSilver from '../../assets/worn/liya-silver.jpg'
 import styles from './WornCustom.module.css'
 
 type Metal = 'silver' | 'gold'
 
-// Colour names only — no claims about which specific stones exist.
-const STONE_COLORS = [
-  { id: 'rose', hex: '#d98aa0', en: 'rose', he: 'ורוד' },
-  { id: 'green', hex: '#5fa27c', en: 'green', he: 'ירוק' },
-  { id: 'blue', hex: '#4f78b8', en: 'blue', he: 'כחול' },
-  { id: 'amber', hex: '#d49a3a', en: 'amber', he: 'ענבר' },
+// One photo per stone colour. Colour names only: no claims about which
+// specific stones exist.
+const STONE_OPTIONS = [
+  { id: 'red', hex: '#a3262a', src: liyaRed, en: 'red', he: 'אדום' },
+  { id: 'blue', hex: '#1f2f5c', src: liyaBlue, en: 'blue', he: 'כחול' },
+  { id: 'silver', hex: '#d4d4d8', src: liyaSilver, en: 'no stones, plain silver', he: 'בלי אבנים, כסף חלק' },
 ]
 
 /** The cover is often a worn/lifestyle shot; the second photo is usually the clean product shot, which reads better for colour play. */
@@ -75,13 +78,21 @@ export function WornCustom({ pieces }: { pieces: Piece[] }) {
 
           {liya && (
             <div className={`${styles.card} ${styles.cardLiya}`}>
-              <Link to={`/piece/${liya.slug}`} className={styles.photo} style={{ boxShadow: `0 0 0 6px ${STONE_COLORS[stone].hex}` }}>
-                <img src={productShot(liya).medium} alt={productShot(liya).alt[locale]} loading="lazy" />
+              <Link to={`/piece/${liya.slug}`} className={styles.photo}>
+                {STONE_OPTIONS.map((c, i) => (
+                  <img
+                    key={c.id}
+                    src={c.src}
+                    alt={c.id === 'silver' ? (he ? 'ליה, כסף חלק' : 'Liya in plain silver') : he ? `ליה עם אבן ${c.he}` : `Liya with a ${c.en} stone`}
+                    data-off={i === stone ? undefined : ''}
+                    loading="lazy"
+                  />
+                ))}
               </Link>
               <div className={styles.controls}>
                 <span className={styles.cardName}>{liya.name[locale]}</span>
                 <div className={styles.dots} role="group" aria-label={he ? 'צבע אבן' : 'Stone colour'}>
-                  {STONE_COLORS.map((c, i) => (
+                  {STONE_OPTIONS.map((c, i) => (
                     <button
                       key={c.id}
                       type="button"
