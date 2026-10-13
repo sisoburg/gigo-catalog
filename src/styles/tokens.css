@@ -18,8 +18,8 @@
 
   --ease-signature: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* English: Frank Ruhl Libre headings + Assistant body (pairing A). */
-  --font-heading: 'Frank Ruhl Libre', serif;
+  /* English: Hanken Grotesk headings (free stand-in for Neuzeit Grotesk; Light/Regular only) + Assistant body. */
+  --font-heading: 'Hanken Grotesk', sans-serif;
   --font-body: 'Assistant', sans-serif;
 }
 
