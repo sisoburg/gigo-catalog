@@ -112,9 +112,9 @@ scripts/
 - Videos aren't transcoded/compressed client-side (no reliable in-browser
   encoder) — the admin just warns if a clip is long or heavy; trim before
   uploading for best results.
-- HEIC photos (iPhone's default format) may not preview/crop correctly in
-  non-Safari browsers — switch your phone's camera format to "Most
-  Compatible" (JPEG) in Settings → Camera → Formats if you hit this.
+- HEIC photos (iPhone's default format) are automatically converted to JPEG
+  client-side before cropping and WebP compression, so they can be uploaded
+  from any browser or OS without changing phone camera settings.
 - Main JS bundle is ~170KB gzipped (React + GSAP + Lenis + Supabase client).
   Reasonable for the amount of motion on the site, but could be trimmed
   further with route-level code-splitting if it ever matters.

@@ -129,7 +129,7 @@ export function HeroSettings() {
           <button className="btn secondary small" type="button" disabled={uploading} onClick={() => videoInputRef.current?.click()}>
             {uploading ? <span className="spinner" /> : 'Upload video'}
           </button>
-          <input ref={photoInputRef} type="file" accept="image/*" hidden onChange={handlePhotoPick} />
+          <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif,image/heic,image/heif" hidden onChange={handlePhotoPick} />
           <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={handleVideoPick} />
         </div>
         <p className="helpText">A video replaces the photo (and vice versa) — the homepage shows whichever you set most recently.</p>
