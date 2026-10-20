@@ -2,6 +2,8 @@
 // the brief asks for short clips already, so we just validate and warn, then
 // capture a poster frame for the gallery's paused/loading state.
 
+import { canvasToWebp } from './imagePipeline'
+
 export const VIDEO_MAX_DURATION_SECONDS = 12
 export const VIDEO_MAX_SIZE_MB = 20
 
@@ -52,7 +54,7 @@ export function captureVideoPoster(video: HTMLVideoElement, atSeconds = 0.3): Pr
         return
       }
       ctx.drawImage(video, 0, 0)
-      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not capture a poster frame'))), 'image/webp', 0.85)
+      canvasToWebp(canvas, 0.85).then(resolve, () => reject(new Error('Could not capture a poster frame')))
     }
     video.addEventListener('seeked', onSeeked)
     const target = Number.isFinite(video.duration) ? Math.min(atSeconds, Math.max(0, video.duration / 2)) : atSeconds

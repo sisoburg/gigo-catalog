@@ -83,10 +83,25 @@ export function resizeCanvas(source: HTMLCanvasElement, maxWidth: number): HTMLC
   return canvas
 }
 
-export function canvasToWebp(canvas: HTMLCanvasElement, quality = 0.85): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not encode image'))), 'image/webp', quality)
-  })
+/** Encodes as WebP, falling back to JPEG where the browser can't: Safari/iOS
+ *  silently returns a (much larger) PNG for an unsupported type, so check
+ *  the blob's real type rather than trust the request. Callers should use
+ *  blobContentType()/blobExt() on the result. */
+export async function canvasToWebp(canvas: HTMLCanvasElement, quality = 0.85): Promise<Blob> {
+  const encode = (type: string) => new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality))
+  const webp = await encode('image/webp')
+  if (webp && webp.type === 'image/webp') return webp
+  const jpeg = await encode('image/jpeg')
+  if (jpeg) return jpeg
+  throw new Error('Could not encode image')
+}
+
+export function blobContentType(blob: Blob): string {
+  return blob.type === 'image/webp' ? 'image/webp' : 'image/jpeg'
+}
+
+export function blobExt(blob: Blob): string {
+  return blob.type === 'image/webp' ? 'webp' : 'jpg'
 }
 
 export interface ProcessedPhoto {

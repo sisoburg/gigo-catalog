@@ -11,7 +11,7 @@ import {
   publicUrl,
   type MediaRow,
 } from './adminData'
-import { loadImage, processPhoto, rotateStoredPhoto, type ProcessedPhoto } from './imagePipeline'
+import { loadImage, processPhoto, blobContentType, blobExt, rotateStoredPhoto, type ProcessedPhoto } from './imagePipeline'
 import { loadVideoMeta, captureVideoPoster, describeVideoWarning } from './videoPipeline'
 import { CropModal } from './CropModal'
 
@@ -81,9 +81,9 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
       const id = crypto.randomUUID()
       const base = `pieces/${pieceId}/${id}`
       const [pThumb, pMedium, pLarge] = await Promise.all([
-        uploadToStorage(`${base}-thumb.webp`, processed.thumbnail, 'image/webp'),
-        uploadToStorage(`${base}-medium.webp`, processed.medium, 'image/webp'),
-        uploadToStorage(`${base}-large.webp`, processed.large, 'image/webp'),
+        uploadToStorage(`${base}-thumb.${blobExt(processed.thumbnail)}`, processed.thumbnail, blobContentType(processed.thumbnail)),
+        uploadToStorage(`${base}-medium.${blobExt(processed.medium)}`, processed.medium, blobContentType(processed.medium)),
+        uploadToStorage(`${base}-large.${blobExt(processed.large)}`, processed.large, blobContentType(processed.large)),
       ])
       const isFirst = (items?.length ?? 0) === 0
       await insertMediaRow({
@@ -129,7 +129,7 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
       const base = `pieces/${pieceId}/${id}`
       const [pVideo, pPoster] = await Promise.all([
         uploadToStorage(`${base}-video.mp4`, file, file.type || 'video/mp4'),
-        uploadToStorage(`${base}-poster.webp`, poster, 'image/webp'),
+        uploadToStorage(`${base}-poster.${blobExt(poster)}`, poster, blobContentType(poster)),
       ])
       const isFirst = (items?.length ?? 0) === 0
       await insertMediaRow({
@@ -180,9 +180,9 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
         direction,
       )
       await Promise.all([
-        updateStorageObject(m.path_thumbnail, rotated.thumbnail, 'image/webp'),
-        updateStorageObject(m.path_medium, rotated.medium, 'image/webp'),
-        updateStorageObject(m.path_large, rotated.large, 'image/webp'),
+        updateStorageObject(m.path_thumbnail, rotated.thumbnail, blobContentType(rotated.thumbnail)),
+        updateStorageObject(m.path_medium, rotated.medium, blobContentType(rotated.medium)),
+        updateStorageObject(m.path_large, rotated.large, blobContentType(rotated.large)),
       ])
       // The storage path doesn't change, so bust the browser's own cache of
       // it for this session — otherwise the old (sideways) bytes keep showing.
@@ -306,7 +306,7 @@ export function MediaManager({ pieceId }: MediaManagerProps) {
         <button className="btn secondary small" type="button" disabled={uploading} onClick={() => videoInputRef.current?.click()}>
           {uploading ? <span className="spinner" /> : '+ Add video'}
         </button>
-        <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif,image/heic,image/heif" hidden onChange={handlePhotoPick} />
+        <input ref={photoInputRef} type="file" accept="image/*" hidden onChange={handlePhotoPick} />
         <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={handleVideoPick} />
       </div>
       <p className="helpText">Photos are cropped to a 4:5 frame and resized to three sizes automatically. Videos should be short, 5–10s clips.</p>
