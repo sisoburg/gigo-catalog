@@ -102,7 +102,11 @@ export function Carousel({ pieces }: CarouselProps) {
       if (!track) return
       const clamped = Math.max(0, Math.min(trackItems.length - 1, index))
       const item = track.children[clamped] as HTMLElement | undefined
-      item?.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', inline: 'center', block: 'nearest' })
+      if (!item) return
+      // Scroll the track itself, not scrollIntoView: that also scrolls the
+      // page vertically, which on load jumped the visitor past the hero.
+      const left = item.offsetLeft + item.offsetWidth / 2 - track.clientWidth / 2
+      track.scrollTo({ left, behavior: instant ? 'auto' : 'smooth' })
     },
     [trackItems.length],
   )

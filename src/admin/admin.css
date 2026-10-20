@@ -440,3 +440,122 @@
   color: var(--a-muted);
   margin-top: 0.2rem;
 }
+
+/* ---- Analytics ---- */
+.anaControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.anaSegments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.anaSeg {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.anaSeg button {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--a-line);
+  background: var(--a-surface);
+  color: var(--a-fg);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.anaSeg button.on {
+  background: var(--a-accent);
+  border-color: var(--a-accent);
+  color: #fff;
+}
+.anaCard {
+  margin-bottom: 1rem;
+}
+.anaCard h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--a-muted);
+  font-weight: 600;
+}
+.anaKpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.anaKpis .anaCard {
+  margin-bottom: 0;
+}
+.anaKpiLabel {
+  font-size: 0.75rem;
+  color: var(--a-muted);
+}
+.anaKpiValue {
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.anaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.anaDot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 2px;
+  margin-right: 0.25rem;
+}
+.anaBars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.anaBarRow {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.82rem;
+}
+.anaBarFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--a-line);
+  border-radius: 4px;
+  opacity: 0.7;
+}
+.anaBarLabel,
+.anaBarNum {
+  position: relative;
+}
+.anaBarLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 0.5rem;
+}
+.anaTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.anaTable th,
+.anaTable td {
+  text-align: left;
+  padding: 0.35rem 0.6rem 0.35rem 0;
+  border-bottom: 1px solid var(--a-line);
+  white-space: nowrap;
+}
+.anaTable th {
+  color: var(--a-muted);
+  font-weight: 600;
+}
