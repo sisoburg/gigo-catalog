@@ -84,6 +84,7 @@
   flex: 0 0 auto;
   width: 74vw;
   scroll-snap-align: center;
+  scroll-snap-stop: always;
   transform: scale(0.94);
   opacity: 0.55;
 }

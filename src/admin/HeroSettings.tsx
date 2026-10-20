@@ -9,7 +9,7 @@ import {
   deleteHeroCandidate,
   type HeroCandidateRow,
 } from './adminData'
-import { loadImage, processHeroPhoto, HERO_ASPECT } from './imagePipeline'
+import { loadImage, processHeroPhoto, blobContentType, blobExt, HERO_ASPECT } from './imagePipeline'
 import { loadVideoMeta, captureVideoPoster, describeVideoWarning } from './videoPipeline'
 import { CropModal } from './CropModal'
 import type { Tables } from '../lib/database.types'
@@ -65,8 +65,8 @@ export function HeroSettings() {
     setError(null)
     try {
       const blob = await processHeroPhoto(pendingImage.img, crop)
-      const path = `site/hero-${Date.now()}.webp`
-      await uploadToStorage(path, blob, 'image/webp')
+      const path = `site/hero-${Date.now()}.${blobExt(blob)}`
+      await uploadToStorage(path, blob, blobContentType(blob))
       const row = await insertHeroCandidate(path)
       setCandidates((prev) => [row, ...(prev ?? [])])
       URL.revokeObjectURL(pendingImage.src)
@@ -136,10 +136,10 @@ export function HeroSettings() {
       const poster = await captureVideoPoster(video)
       const stamp = Date.now()
       const videoPath = `site/hero-${stamp}.mp4`
-      const posterPath = `site/hero-${stamp}-poster.webp`
+      const posterPath = `site/hero-${stamp}-poster.${blobExt(poster)}`
       await Promise.all([
         uploadToStorage(videoPath, file, file.type || 'video/mp4'),
-        uploadToStorage(posterPath, poster, 'image/webp'),
+        uploadToStorage(posterPath, poster, blobContentType(poster)),
       ])
       const { error } = await supabase
         .from('site_settings')
@@ -192,7 +192,7 @@ export function HeroSettings() {
           <button className="btn secondary small" type="button" disabled={uploading} onClick={() => videoInputRef.current?.click()}>
             {uploading ? <span className="spinner" /> : 'Upload video'}
           </button>
-          <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif,image/heic,image/heif" hidden onChange={handlePhotoPick} />
+          <input ref={photoInputRef} type="file" accept="image/*" hidden onChange={handlePhotoPick} />
           <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={handleVideoPick} />
         </div>
         <p className="helpText">A video replaces the photo (and vice versa) — the homepage shows whichever you set most recently.</p>

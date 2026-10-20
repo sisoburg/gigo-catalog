@@ -8,6 +8,7 @@ import { PieceList } from './PieceList'
 import { PieceEdit } from './PieceEdit'
 import { HeroSettings } from './HeroSettings'
 import { WornSettings } from './WornSettings'
+import { Analytics } from './Analytics'
 import './admin.css'
 
 function RequireAuth() {
@@ -51,6 +52,7 @@ export function AdminApp() {
             <Route path="piece/:id" element={<PieceEdit />} />
             <Route path="hero" element={<HeroSettings />} />
             <Route path="worn" element={<WornSettings />} />
+            <Route path="analytics" element={<Analytics />} />
           </Route>
         </Route>
       </Routes>

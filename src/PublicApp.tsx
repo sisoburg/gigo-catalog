@@ -4,6 +4,7 @@ import { CatalogProvider } from './data/CatalogContext'
 import { LanguageSwitch } from './components/LanguageSwitch'
 import { InstagramLink } from './components/InstagramLink'
 import { BackToTop } from './components/BackToTop'
+import { PageViewTracker } from './components/PageViewTracker'
 import { Footer } from './components/Footer'
 import { Home } from './pages/Home'
 import { PieceDetail } from './pages/PieceDetail'
@@ -17,6 +18,7 @@ export function PublicApp() {
           <InstagramLink />
           <LanguageSwitch />
         </header>
+        <PageViewTracker />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/piece/:slug" element={<PieceDetail />} />

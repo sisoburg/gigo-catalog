@@ -3,6 +3,8 @@
   flex: 0 0 auto;
   width: 74vw;
   scroll-snap-align: center;
+  /* One swipe = one piece: stops a fast flick from flying past several. */
+  scroll-snap-stop: always;
   -webkit-user-drag: none;
   transform: scale(0.94);
   opacity: 0.55;

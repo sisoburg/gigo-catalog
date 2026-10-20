@@ -144,6 +144,51 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device: string | null
+          id: number
+          locale: string | null
+          path: string
+          piece_slug: string | null
+          referrer_host: string | null
+          screen_w: number | null
+          session_id: string
+          source: string | null
+          visitor_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          id?: never
+          locale?: string | null
+          path: string
+          piece_slug?: string | null
+          referrer_host?: string | null
+          screen_w?: number | null
+          session_id: string
+          source?: string | null
+          visitor_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          id?: never
+          locale?: string | null
+          path?: string
+          piece_slug?: string | null
+          referrer_host?: string | null
+          screen_w?: number | null
+          session_id?: string
+          source?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       pieces: {
         Row: {
           created_at: string
@@ -224,7 +269,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      analytics_summary: {
+        Args: { p_from: string; p_to: string }
+        Returns: { total_views: number; unique_visitors: number; sessions: number; returning_visitors: number }[]
+      }
+      analytics_timeseries: {
+        Args: { p_from: string; p_to: string; p_bucket: string }
+        Returns: { bucket: string; views: number; visitors: number }[]
+      }
+      analytics_top: {
+        Args: { p_from: string; p_to: string; p_dimension: string; p_limit?: number }
+        Returns: { label: string; views: number; visitors: number }[]
+      }
     }
     Enums: {
       [_ in never]: never
