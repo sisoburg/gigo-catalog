@@ -223,7 +223,7 @@ async function toWebp(srcPath: string, maxWidth: number): Promise<Buffer> {
 }
 
 async function upload(storagePath: string, body: Buffer, contentType: string) {
-  const { error } = await supabase.storage.from('media').upload(storagePath, body, { contentType })
+  const { error } = await supabase.storage.from('media').upload(storagePath, body, { contentType, cacheControl: '31536000' })
   if (error) throw new Error(`upload ${storagePath}: ${error.message}`)
   return storagePath
 }

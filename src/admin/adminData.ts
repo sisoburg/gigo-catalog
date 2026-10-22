@@ -116,7 +116,7 @@ export async function deleteMedia(id: string, pieceId: string): Promise<void> {
 }
 
 export async function uploadToStorage(path: string, body: Blob, contentType: string): Promise<string> {
-  const { error } = await supabase.storage.from('media').upload(path, body, { contentType })
+  const { error } = await supabase.storage.from('media').upload(path, body, { contentType, cacheControl: '31536000' })
   if (error) throw error
   return path
 }
