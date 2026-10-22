@@ -6,6 +6,8 @@ import { canvasToWebp } from './imagePipeline'
 
 export const VIDEO_MAX_DURATION_SECONDS = 12
 export const VIDEO_MAX_SIZE_MB = 20
+// The hero loads for every visitor, so its size drives Supabase egress.
+export const HERO_VIDEO_MAX_SIZE_MB = 8
 
 export interface VideoMeta {
   duration: number

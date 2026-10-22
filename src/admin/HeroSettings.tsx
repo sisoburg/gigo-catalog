@@ -10,7 +10,7 @@ import {
   type HeroCandidateRow,
 } from './adminData'
 import { loadImage, processHeroPhoto, blobContentType, blobExt, HERO_ASPECT } from './imagePipeline'
-import { loadVideoMeta, captureVideoPoster, describeVideoWarning } from './videoPipeline'
+import { loadVideoMeta, captureVideoPoster, describeVideoWarning, HERO_VIDEO_MAX_SIZE_MB } from './videoPipeline'
 import { CropModal } from './CropModal'
 import type { Tables } from '../lib/database.types'
 
@@ -131,6 +131,11 @@ export function HeroSettings() {
     setWarning(null)
     try {
       const { meta, video } = await loadVideoMeta(file)
+      if (meta.sizeMB > HERO_VIDEO_MAX_SIZE_MB) {
+        throw new Error(
+          `The hero video is ${meta.sizeMB.toFixed(1)}MB. It loads for every visitor, so keep it under ${HERO_VIDEO_MAX_SIZE_MB}MB (no audio, H.264).`,
+        )
+      }
       const w = describeVideoWarning(meta)
       if (w) setWarning(`This clip is ${w}. Uploaded anyway, but consider trimming it.`)
       const poster = await captureVideoPoster(video)
